@@ -98,7 +98,7 @@ an<-runMetaAnalysis(metaAnal,metaData)
 
 showAnalysis(an,"Exp ")
 #########################################
-# run Gamma
+# run Gamma (very slow as convolution done numerically)
 # shape<1 gives infinity at z=0
 shapes<-2^seq(0,4,length.out=7)
 
