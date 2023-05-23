@@ -84,14 +84,14 @@ drawAnalysis(an,metaData)
 
 #########################################
 # test Gamma bby comparing shape=1 with exponential
-metaAnal<-list(meta_fixedAnal="random",meta_pdf="Gamma",gamma_shape=1,meta_psigAnal=TRUE,meta_nullAnal=TRUE,append=FALSE)
+metaAnal<-list(meta_fixedAnal="random",meta_pdf="Gamma",shape=1,meta_psigAnal=TRUE,meta_nullAnal=TRUE,append=FALSE)
 metaData<-list(result=list(rIV=my_data$r_s[1:100],nval=my_data$n[1:100]))
 
 an<-runMetaAnalysis(metaAnal,metaData)
 
 showAnalysis(an,"Gamma")
 
-metaAnal<-list(meta_fixedAnal="random",meta_pdf="Exp",gamma_shape=1,meta_psigAnal=TRUE,meta_nullAnal=TRUE,append=FALSE)
+metaAnal<-list(meta_fixedAnal="random",meta_pdf="Exp",shape=1,meta_psigAnal=TRUE,meta_nullAnal=TRUE,append=FALSE)
 metaData<-list(result=list(rIV=my_data$r_s[1:100],nval=my_data$n[1:100]))
 
 an<-runMetaAnalysis(metaAnal,metaData)
@@ -106,7 +106,7 @@ resultK<-c()
 resultNull<-c()
 resultS<-c()
 for (si in 1:length(shapes)) {
-  metaAnal<-list(meta_fixedAnal="random",meta_pdf="Gamma",gamma_shape=shapes[si],meta_psigAnal=TRUE,meta_nullAnal=TRUE,append=FALSE)
+  metaAnal<-list(meta_fixedAnal="random",meta_pdf="Gamma",shape=shapes[si],meta_psigAnal=TRUE,meta_nullAnal=TRUE,append=FALSE)
   metaData<-list(result=list(rIV=my_data$r_s,nval=my_data$n))
   
   an<-runMetaAnalysis(metaAnal,metaData)
@@ -114,6 +114,28 @@ for (si in 1:length(shapes)) {
   resultNull[si]<-an$bestNull
   resultS[si]<-an$bestS
   showAnalysis(an,paste0("Gamma(",format(shapes[si],digits=2),")"))
+}
+
+doublePlot(shapes,"k",resultK,expression(lambda),resultNull,expression(p[null]),resultS/1000,expression(log(lk)))
+
+#########################################
+# run GenExp (very slow as convolution done numerically)
+# 
+shapes<-2^seq(-1,4,length.out=6)
+shapes<-2^seq(-3,1,length.out=5)
+
+resultK<-c()
+resultNull<-c()
+resultS<-c()
+for (si in 1:length(shapes)) {
+  metaAnal<-list(meta_fixedAnal="random",meta_pdf="GenExp",shape=shapes[si],meta_psigAnal=TRUE,meta_nullAnal=TRUE,append=FALSE)
+  metaData<-list(result=list(rIV=my_data$r_s,nval=my_data$n))
+  
+  an<-runMetaAnalysis(metaAnal,metaData)
+  resultK[si]<-an$bestK
+  resultNull[si]<-an$bestNull
+  resultS[si]<-an$bestS
+  showAnalysis(an,paste0("GenExp(",format(shapes[si],digits=2),")"))
 }
 
 doublePlot(shapes,"k",resultK,expression(lambda),resultNull,expression(p[null]),resultS/1000,expression(log(lk)))

@@ -83,21 +83,28 @@ runMetaAnalysis<-function(metaAnalysis,metaResult){
       exp<-list(Kmax=NA,Nullmax=NA,Smax=NA)
     }
     
-    # find best Exp
+    # find best Gamma
     if (metaAnalysis$meta_pdf=="Gamma") {
       gamma<-getMaxLikelihood(zs,ns,"Gamma",metaAnalysis)
     } else {
       gamma<-list(Kmax=NA,Nullmax=NA,Smax=NA)
     }
     
+    # find best GenExp
+    if (metaAnalysis$meta_pdf=="GenExp") {
+      genexp<-getMaxLikelihood(zs,ns,"GenExp",metaAnalysis)
+    } else {
+      genexp<-list(Kmax=NA,Nullmax=NA,Smax=NA)
+    }
+    
   }
   
   
-  use<-which.max(c(single$Smax,gauss$Smax,exp$Smax,gamma$Smax))
-  bestDist<-c("Single","Gauss","Exp","Gamma")[use]
-  bestK<-c(single$Kmax,gauss$Kmax,exp$Kmax,gamma$Kmax)[use]
-  bestNull<-c(single$Nullmax,gauss$Nullmax,exp$Nullmax,gamma$Nullmax)[use]
-  bestS<-c(single$Smax,gauss$Smax,exp$Smax,gamma$Smax)[use]
+  use<-which.max(c(single$Smax,gauss$Smax,exp$Smax,gamma$Smax,genexp$Smax))
+  bestDist<-c("Single","Gauss","Exp","Gamma","GenExp")[use]
+  bestK<-c(single$Kmax,gauss$Kmax,exp$Kmax,gamma$Kmax,genexp$Kmax)[use]
+  bestNull<-c(single$Nullmax,gauss$Nullmax,exp$Nullmax,gamma$Nullmax,genexp$Nullmax)[use]
+  bestS<-c(single$Smax,gauss$Smax,exp$Smax,gamma$Smax,genexp$Smax)[use]
 
   if (metaAnalysis$append) {
     bestDist<-c(metaResult$bestDist,bestDist)
@@ -120,12 +127,17 @@ runMetaAnalysis<-function(metaAnalysis,metaResult){
     gamma$Kmax<-c(metaResult$gamma$Kmax,gamma$Kmax)
     gamma$Smax<-c(metaResult$gamma$Smax,gamma$Smax)
     gamma$Nullmax<-c(metaResult$gamma$Nullmax,gamma$Nullmax)
+    
+    genexp$Kmax<-c(metaResult$genexp$Kmax,genexp$Kmax)
+    genexp$Smax<-c(metaResult$genexp$Smax,genexp$Smax)
+    genexp$Nullmax<-c(metaResult$genexp$Nullmax,genexp$Nullmax)
   }
   
   metaResult<-list(single=single,
                    gauss=gauss,
                    exp=exp,
                    gamma=gamma,
+                   genexp=genexp,
                    bestDist=bestDist,
                    bestK=bestK,
                    bestNull=bestNull,

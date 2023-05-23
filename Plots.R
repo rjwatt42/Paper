@@ -201,10 +201,12 @@ doublePlot<-function(x1,xlb,y1,ylb1,y2=NULL,ylb2=NULL,y3=NULL,ylb3=NULL) {
     ylim3<-c(min(min(y3),0.1),max(max(y3)+0.1,0.8))
     g3<-ggplot()+scale_y_continuous(limits=ylim3)
     if (!is.null(xtick)) {
-      g3<-g3+scale_x_continuous(breaks=1:length(x1),labels=xtick)
+      g3<-g3+scale_x_continuous(limits=c(0,length(x1)+1),breaks=1:length(x1),labels=xtick)
       if (max(nchar(xtick))>2) {
         g3<-g3+theme(axis.text.x=element_text(angle = 90, hjust = 1))
       }
+    } else {
+      g3<-g3+scale_x_continuous(limits=c(min(x1),max(x1))+c(-1,1)*(max(x1)-min(x1))/4)
     }
     pts<-data.frame(x3=x1,y3=y3)
     g3<-g3+geom_line(data=pts,aes(x=x3,y=y3))
