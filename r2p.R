@@ -1,3 +1,5 @@
+alpha<-0.05
+
 
 
 r2p<-function(r,n,df1=1){
