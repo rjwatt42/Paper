@@ -117,7 +117,6 @@ for (si in 1:length(shapes)) {
 }
 
 doublePlot(shapes,"k",resultK,expression(lambda),resultNull,expression(p[null]),resultS/1000,expression(log(lk)))
-# doublePlot(log10(shapes),"log(Shape)",resultK,"k",resultNull,"p(null)",resultS,"S")
 
 #########################################
 # results split by unique or not
@@ -146,7 +145,7 @@ for (i in 1:length(conditions)) {
   showAnalysis(an,paste0("Condition=",conditions[i]))
 }
 
-doublePlot(c("Unique","Duplicated"),"",kRes,"k",nRes,"p(null)")
+doublePlot(c("Unique","Duplicated"),"",kRes,expression(lambda),nRes,"p(null)")
 
 #########################################
 # number of siblings
@@ -165,7 +164,7 @@ for (i in 1:length(siblings)) {
   sRes<-cbind(sRes,an$bestS)
   showAnalysis(an,paste0("No siblings=",siblings[i]))
 }
-doublePlot(siblings,"siblings",kRes,"k",nRes,"p(null)")
+doublePlot(siblings,"siblings",kRes,expression(lambda),nRes,"p(null)")
 
 #########################################
 # number of studies
@@ -184,7 +183,7 @@ for (i in 1:length(studies)) {
   sRes<-cbind(sRes,an$bestS)
   showAnalysis(an,paste0("No unique studies=",studies[i]))
 }
-doublePlot(studies,"studies",kRes,"k",nRes,"p(null)")
+doublePlot(studies,"studies",kRes,expression(lambda),nRes,"p(null)")
 
 #########################################
 # essentially a check for power analysis
@@ -208,7 +207,7 @@ for (i in 1:length(nmaxs)) {
   sRes<-cbind(sRes,an$bestS)
   showAnalysis(an,paste0("n=",round(nmaxs[i])))
 }
-doublePlot(nmaxs,expression(n[max]),kRes,"k",nRes,"p(null)")
+doublePlot(nmaxs,expression(n[max]),kRes,expression(lambda),nRes,"p(null)")
 
 #########################################
 # split by year
@@ -229,7 +228,7 @@ for (i in 1:(length(years)-1)) {
   sRes<-cbind(sRes,an$bestS)
   showAnalysis(an,paste0("year=",years[i]))
 }
-doublePlot(years,"year",kRes,"k",nRes,"p(null)")
+doublePlot(years,"year",kRes,expression(lambda),nRes,"p(null)")
 
 #########################################
 # split by journal
@@ -249,7 +248,7 @@ for (i in 1:(length(journals))) {
   showAnalysis(an,journals[i])
 }
 
-doublePlot(journals,"",kRes,"k",nRes,"p(null)")
+doublePlot(journals,"",kRes,expression(lambda),nRes,"p(null)")
 
 #########################################
 # split by impact factor
@@ -268,7 +267,7 @@ for (i in 1:(length(factors)-1)) {
   sRes<-cbind(sRes,an$bestS)
   showAnalysis(an,factors[i])
 }
-doublePlot(factors,"Impact",kRes,"k",nRes,"p(null)")
+doublePlot(factors,"Impact",kRes,expression(lambda),nRes,"p(null)")
 
 
 #########################################
@@ -288,5 +287,5 @@ for (i in 1:(length(statistics))) {
   sRes<-cbind(sRes,an$bestS)
   showAnalysis(an,statistics[i])
 }
-doublePlot(statistics,"Test",kRes,"k",nRes,"p(null)")
+doublePlot(statistics,"Test",kRes,expression(lambda),nRes,"p(null)")
 
