@@ -121,8 +121,7 @@ doublePlot(shapes,"k",resultK,expression(lambda),resultNull,expression(p[null]),
 #########################################
 # run GenExp (very slow as convolution done numerically)
 # 
-shapes<-2^seq(-1,4,length.out=6)
-shapes<-2^seq(-3,1,length.out=5)
+shapes<-2^seq(-5,2,length.out=8)
 
 resultK<-c()
 resultNull<-c()
@@ -138,7 +137,7 @@ for (si in 1:length(shapes)) {
   showAnalysis(an,paste0("GenExp(",format(shapes[si],digits=2),")"))
 }
 
-doublePlot(shapes,"a",resultK,expression(lambda),resultNull,expression(p[null]),resultS/1000,expression(log(lk)))
+doublePlot(log2(shapes),"log2(a)",resultK,expression(lambda),resultNull,expression(p[null]),resultS/1000,expression(log(lk)/1000))
 
 #########################################
 # results split by unique or not

@@ -198,7 +198,7 @@ doublePlot<-function(x1,xlb,y1,ylb1,y2=NULL,ylb2=NULL,y3=NULL,ylb3=NULL) {
   }
   
   if (!is.null(y3)) {
-    ylim3<-c(min(min(y3),0.1),max(max(y3)+0.1,0.8))
+    ylim3<-c(min(y3),max(y3))+c(-1,1)*(max(y3)-min(y3))/5
     g3<-ggplot()+scale_y_continuous(limits=ylim3)
     if (!is.null(xtick)) {
       g3<-g3+scale_x_continuous(limits=c(0,length(x1)+1),breaks=1:length(x1),labels=xtick)
