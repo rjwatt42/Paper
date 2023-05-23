@@ -138,7 +138,7 @@ for (si in 1:length(shapes)) {
   showAnalysis(an,paste0("GenExp(",format(shapes[si],digits=2),")"))
 }
 
-doublePlot(shapes,"k",resultK,expression(lambda),resultNull,expression(p[null]),resultS/1000,expression(log(lk)))
+doublePlot(shapes,"a",resultK,expression(lambda),resultNull,expression(p[null]),resultS/1000,expression(log(lk)))
 
 #########################################
 # results split by unique or not

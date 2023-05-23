@@ -49,9 +49,9 @@ ExpSamplingCDF<-function(zcrit,lambda,sigma,shape) {
 
 d_zi=0.05
 d_max=16
-GammaSamplingPDF<-function(z,lambda,sigma,shape=1) {
+GammaSamplingPDF<-function(z,lambda,sigma,gamma_shape=1) {
   zi<-seq(-d_max,d_max,d_zi)
-  zd<-dgamma(abs(zi),shape=shape,scale=lambda/shape)/2
+  zd<-dgamma(abs(zi),shape=gamma_shape,scale=lambda/gamma_shape)/2
   # zd<-zd/sum(zd)
   if (length(sigma)==1) sigma=rep(sigma,length(z))
   
@@ -61,14 +61,14 @@ GammaSamplingPDF<-function(z,lambda,sigma,shape=1) {
   }
   res*(zi[2]-zi[1])
 }
-GammaSamplingCDF<-function(zcrit,lambda,sigma,shape=1) {
+GammaSamplingCDF<-function(zcrit,lambda,sigma,gamma_shape=1) {
   res<-zcrit*0
   zcritUnique<-unique(zcrit)
   for (i in 1:length(zcritUnique)) {
     use<-which(zcrit==zcritUnique[i])
     zi<-seq(-d_max,-zcritUnique[i],d_zi)
     zi<-c(zi,-zcritUnique[i])
-    zd<-GammaSamplingPDF(zi,lambda,sigma[use[1]],shape)
+    zd<-GammaSamplingPDF(zi,lambda,sigma[use[1]],gamma_shape)
     areas<-(zd[1:(length(zi)-1)]+zd[2:length(zi)])/2*diff(zi)
     p1<-sum( areas )
     res[use]<-p1*2
@@ -81,7 +81,7 @@ d_max=16
 GenExpSamplingPDF<-function(z,lambda,sigma,genexp_shape=1) {
   zi<-seq(-d_max,d_max,d_zi)
   zd<-1-(1-exp(-abs(zi)/lambda))^genexp_shape
-  zd<-zd/sum(zd)
+  zd<-zd/(sum(zd)*d_zi)
   if (length(sigma)==1) sigma=rep(sigma,length(z))
   
   res<-z*0
