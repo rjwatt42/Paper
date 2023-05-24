@@ -54,13 +54,13 @@ drawAnalysis<-function(an1,metaData1) {
   n<-metaData1$result$nval
   
   if (any(an1$metaAnalysis$meta_pdf=="Exp") || an1$metaAnalysis$meta_pdf=="All") {
-    Sk1<-getLogLikelihood(z,n,"Exp",k,an1$exp$nullMax,p_sig=TRUE)
+    Sk1<-getLogLikelihood(z,n,"Exp",k,an1$exp$Nullmax,p_sig=TRUE)
     Sk1<-Sk1/gain
     
     pts1<-data.frame(x=k,y=Sk1)
     g1<-g1+geom_line(data=pts1,aes(x=x,y=y,col="Exp"),lwd=1)
     
-    Sn1<-getLogLikelihood(z,n,"Exp",an1$exp$kmax,nullP,p_sig=TRUE)
+    Sn1<-getLogLikelihood(z,n,"Exp",an1$exp$Kmax,nullP,p_sig=TRUE)
     Sn1<-Sn1[1,]/gain
     
     pts1<-data.frame(x=nullP,y=Sn1)
@@ -68,13 +68,13 @@ drawAnalysis<-function(an1,metaData1) {
   }
   
   if (any(an1$metaAnalysis$meta_pdf=="Gauss") || an1$metaAnalysis$meta_pdf=="All") {
-    Sk1<-getLogLikelihood(z,n,"Gauss",k,an1$exp$nullMax,p_sig=TRUE)
+    Sk1<-getLogLikelihood(z,n,"Gauss",k,an1$exp$Nullmax,p_sig=TRUE)
     Sk1<-Sk1/gain
     
     pts1<-data.frame(x=k,y=Sk1)
     g1<-g1+geom_line(data=pts1,aes(x=x,y=y,col="Gauss"),lwd=1)
     
-    Sn1<-getLogLikelihood(z,n,"Gauss",an1$exp$kmax,nullP,p_sig=TRUE)
+    Sn1<-getLogLikelihood(z,n,"Gauss",an1$exp$Kmax,nullP,p_sig=TRUE)
     Sn1<-Sn1[1,]/gain
     
     pts<-data.frame(x=nullP,y=Sn1)
@@ -84,7 +84,7 @@ drawAnalysis<-function(an1,metaData1) {
   g2<-g2+scale_color_manual(name = NULL, values = c("Exp" = "red", "Gauss" = "yellow"))
   
   if (an1$metaAnalysis$meta_pdf=="Gamma") {
-    Sk1<-getLogLikelihood(z,n,"Gamma",k,an1$exp$nullMax,p_sig=TRUE)
+    Sk1<-getLogLikelihood(z,n,"Gamma",k,an1$exp$Nullmax,p_sig=TRUE)
     Sk1<-Sk1/gain
     
     pts1<-data.frame(x=k,y=Sk1)

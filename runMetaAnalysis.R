@@ -1,3 +1,4 @@
+includeSingle=FALSE
 
 getMaxLikelihood<-function(zs,ns,dist,metaAnalysis) {
   nkpoints<-13
