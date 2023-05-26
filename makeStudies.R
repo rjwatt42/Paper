@@ -3,13 +3,13 @@ makeStudies<-function(nStudies,model="Exp",k=0.325,pNull=0.74,sigOnly=TRUE) {
   if (sigOnly) rpts=100 
   else rpts=1
   
-  ns<-round(rgamma(nStudies*rpts,shape=1.2,rate=1/72)+5)
+  ns<-round(rgamma(nStudies*rpts,shape=1.87,rate=1/30)+10)
   switch (model,
           "Exp"={
             zp<-rexp(nStudies*rpts,1/k)
           }
   )
-  zp<-zp*(rnorm(nStudies*rpts)>=pNull)
+  zp<-zp*(runif(nStudies*rpts)>=pNull)
   zp<-zp*sign(rnorm(nStudies*rpts))
   zs<-zp+rnorm(nStudies*rpts,0,1/sqrt(ns-3))
   

@@ -301,3 +301,103 @@ g + plotTheme
 
 ##########################################
 
+shapes=c(0.25,1)
+scale=c(0.341,0.325)
+pnull<-c(0.6,0.74)
+types<-c("GenExp","Exp")
+
+doCDF=TRUE
+# doCDF=FALSE
+
+r<-seq(0,0.99,length.out=5001)
+z<-seq(0,15,length.out=5001)
+
+pts<-data.frame(x=z[1:501])
+
+for (i in 1:length(shapes)) {
+  d<-GenExpSamplingPDF(z,scale[i],0,shapes[i])
+  d<-d/(sum(d)*(z[2]-z[1]))
+  if (doCDF) d<-cumsum(d)/sum(d)*(1-pnull[i])+pnull[i]
+  pts<-cbind(pts,data.frame(d=d[1:501]))
+  names(pts)[i+1]=paste0("y",i)
+}
+
+if (doCDF) pts<-rbind(rep(0,ncol(pts)),pts)
+
+g<-ggplot(pts,aes(x=x))
+varnames <- names(pts)[2:ncol(pts)]
+add_lines <- lapply(varnames, function(i) geom_line(aes_q(y = as.name(i), col = i),lwd=1))
+g<-g+add_lines
+
+g<-g+xlab(expression(z[p]))+ylab("log10(PDF)")
+g<-g+scale_color_discrete(name="",labels=types)
+
+g<-g+theme(
+  legend.background = element_rect(fill="#666666"),
+  legend.key = element_rect(fill="#666666"),
+  legend.text=element_text(color="white"),
+  legend.title = element_text(colour="white", size=12, face="bold",hjust=0.5,vjust=4),
+  legend.position = c(.95, .75),
+  legend.justification = c("right", "top"),
+  legend.box.just = "right",
+  legend.margin = margin(0, 0, 0, 0),
+  legend.spacing.x = unit(2, "mm"),
+  legend.spacing.y = unit(0, "mm")
+)
+
+g + plotTheme
+
+################################
+# back engineering the expected histogrm of sample effect sizes
+
+minN<-min(my_data$n)
+maxN=250
+maxZ=1.5
+
+shapes=c(0.25,1)
+scale=c(0.341,0.325)
+pnull<-c(0.6,0.74)
+types<-c("GenExp","Exp")
+
+z<-seq(0,maxZ,length.out=101)
+
+i<-1
+n_sig<-rep(0,maxN)
+ns<-c()
+
+prob_sig<-rep(0,maxN)
+mainD<-z*0
+for (ni in minN:maxN) {
+  n_sig[ni]<-sum(my_data$n==ni)
+  
+  sigma<-1/sqrt(ni-3)
+  zcrit<-qnorm(1-alpha/2,0,sigma)
+  
+  d<-GenExpSamplingPDF(z,scale[i],sigma,shapes[i])*(1-pnull[i])+
+     SingleSamplingPDF(z,0,sigma)*pnull
+  d<-d/(sum(d)*(z[2]-z[1]))
+  
+  prob_sig[ni]<-sum(d[abs(z)>zcrit])/sum(d)
+  d[abs(z)<=zcrit]<-0
+  mainD<-mainD+d*(n_sig[ni]/prob_sig[ni])
+  
+  ns<-c(ns,rep(ni,round(n_sig[ni]/prob_sig[ni])))
+  if (10*round(ni/10)==ni) print(ni)
+}
+print(fitdistr(ns-9,"gamma"))
+
+z_s<-abs(atanh(my_data$r_s))
+use<-(my_data$n<=maxN) & (my_data$n>=minN) & (z_s<maxZ)
+z_s<-z_s[use]
+mainD<-mainD/sum(mainD)*length(z_s)
+pts<-data.frame(x=z,y=mainD)
+ptsh<-data.frame(z=z_s)
+
+g<-ggplot()
+g<-g+geom_histogram(data=ptsh,aes(x=z),binwidth = (z[2]-z[1]),col="white",fill="white")
+g<-g+geom_line(data=pts,aes(x=x,y=y),col = "red",lwd=1)
+
+g<-g+xlab(expression(z[p]))+ylab("log10(PDF)")
+g + plotTheme
+
+

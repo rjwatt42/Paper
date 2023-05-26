@@ -71,6 +71,18 @@ g
 
 
 ##########################################
+# just for fun: Single and the results
+
+metaAnal<-list(meta_fixedAnal="random",meta_pdf="Single",meta_psigAnal=TRUE,meta_nullAnal=TRUE,append=FALSE)
+metaData<-list(result=list(rIV=my_data$r_s,nval=my_data$n))
+
+an<-runMetaAnalysis(metaAnal,metaData)
+showAnalysis(an,"All")
+
+# CI 
+drawAnalysis(an,metaData)
+
+##########################################
 # all the results
 
 metaAnal<-list(meta_fixedAnal="random",meta_pdf="All",meta_psigAnal=TRUE,meta_nullAnal=TRUE,append=FALSE)
