@@ -41,7 +41,7 @@ showAnalysis<-function(an,param=NULL) {
 drawAnalysis<-function(an1,metaData1) {
   
   ymin<- -100
-  gain<-10000
+  gain<-1000
   g<-ggplot()+plotBlankTheme+theme(plot.margin=margin(0,-0.2,0,0,"cm"))
   g<-g+scale_x_continuous(limits = c(0,10),labels=NULL,breaks=NULL)+scale_y_continuous(limits = c(0,10),labels=NULL,breaks=NULL)
   
@@ -54,6 +54,7 @@ drawAnalysis<-function(an1,metaData1) {
   n<-metaData1$result$nval
   
   if (an1$metaAnalysis$meta_pdf=="Single"){
+    gain<-10000
     Sk1<-getLogLikelihood(z,n,"Single",k,an1$single$Nullmax,remove_nonsig=TRUE)
     Sk1<-Sk1/gain
     
