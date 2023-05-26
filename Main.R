@@ -95,7 +95,7 @@ showAnalysis(an,"All")
 drawAnalysis(an,metaData)
 
 #########################################
-# test Gamma bby comparing shape=1 with exponential
+# test Gamma by comparing shape=1 with exponential
 metaAnal<-list(meta_fixedAnal="random",meta_pdf="Gamma",shape=1,meta_psigAnal=TRUE,meta_nullAnal=TRUE,append=FALSE)
 metaData<-list(result=list(rIV=my_data$r_s[1:100],nval=my_data$n[1:100]))
 

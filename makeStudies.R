@@ -1,12 +1,21 @@
 
-makeStudies<-function(nStudies,model="Exp",k=0.325,pNull=0.74,sigOnly=TRUE) {
+makeStudies<-function(nStudies,model="Exp",k=0.325,shape=NA,pNull=0.74,sigOnly=TRUE) {
   if (sigOnly) rpts=100 
   else rpts=1
   
   ns<-round(rgamma(nStudies*rpts,shape=1.87,rate=1/30)+10)
   switch (model,
+          "Single"={
+            zp<-rep(k,nStudies*rpts)
+          },
           "Exp"={
             zp<-rexp(nStudies*rpts,1/k)
+          },
+          "Gauss"={
+            zp<-rnorm(nStudies*rpts,0,k)
+          },
+          "Gamma"={
+            zp<-rgamma(nStudies*rpts,shape=shape,scale=k/shape)
           }
   )
   zp<-zp*(runif(nStudies*rpts)>=pNull)
@@ -33,7 +42,20 @@ k=0.325
 pNull=0.72
 sigOnly=TRUE
 
-my_data<-makeStudies(nStudies,model,k,pNull,sigOnly)
+my_data<-makeStudies(nStudies,model,k,NA,pNull,sigOnly)
+
+
+############################
+# an example
+
+nStudies=92877
+model="Gamma"
+shape=3
+k=0.325
+pNull=0.72
+sigOnly=TRUE
+
+my_data<-makeStudies(nStudies,model,k,shape,pNull,sigOnly)
 
 
 
