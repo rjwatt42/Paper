@@ -40,7 +40,8 @@ showAnalysis<-function(an,param=NULL) {
 ##########################################
 drawAnalysis<-function(an1,metaData1) {
   
-  ymin<- -100
+  ymax<- -25
+  ymin<- -50
   gain<-1000
   g<-ggplot()+plotBlankTheme+theme(plot.margin=margin(0,-0.2,0,0,"cm"))
   g<-g+scale_x_continuous(limits = c(0,10),labels=NULL,breaks=NULL)+scale_y_continuous(limits = c(0,10),labels=NULL,breaks=NULL)
@@ -83,13 +84,13 @@ drawAnalysis<-function(an1,metaData1) {
   }
   
   if (any(an1$metaAnalysis$meta_pdf=="Gauss") || an1$metaAnalysis$meta_pdf=="All") {
-    Sk1<-getLogLikelihood(z,n,"Gauss",k,an1$exp$Nullmax,remove_nonsig=TRUE)
+    Sk1<-getLogLikelihood(z,n,"Gauss",k,an1$gauss$Nullmax,remove_nonsig=TRUE)
     Sk1<-Sk1/gain
     
     pts1<-data.frame(x=k,y=Sk1)
     g1<-g1+geom_line(data=pts1,aes(x=x,y=y,col="Gauss"),lwd=1)
     
-    Sn1<-getLogLikelihood(z,n,"Gauss",an1$exp$Kmax,nullP,remove_nonsig=TRUE)
+    Sn1<-getLogLikelihood(z,n,"Gauss",an1$gauss$Kmax,nullP,remove_nonsig=TRUE)
     Sn1<-Sn1[1,]/gain
     
     pts<-data.frame(x=nullP,y=Sn1)
@@ -106,7 +107,7 @@ drawAnalysis<-function(an1,metaData1) {
     g1<-g1+geom_line(data=pts,aes(x=x,y=y,col="green"),lwd=0.5)
   }
 
-  g1<-g1+scale_y_continuous(limits=c(ymin,0))
+  g1<-g1+scale_y_continuous(limits=c(ymin,ymax))
   g1<-g1+scale_x_continuous(limits=c(-0.05,1.05),breaks=c(0,0.25,0.5,0.75,1),labels = c("0","0.25","0.5","0.75","1"))
   g1<-g1+xlab(expression(lambda))+ylab(paste0("likelihood/",gain))
   g1<-g1+theme(
@@ -123,7 +124,7 @@ drawAnalysis<-function(an1,metaData1) {
   )
   g1<-g1+plotTheme
   
-  g2<-g2+scale_y_continuous(limits=c(ymin,0),breaks=c())
+  g2<-g2+scale_y_continuous(limits=c(ymin,ymax),breaks=c())
   g2<-g2+scale_x_continuous(limits=c(-0.05,1.05),breaks=c(0,0.25,0.5,0.75,1),labels = c("0","0.25","0.5","0.75","1"))
   g2<-g2+xlab("p(null)")+ylab(NULL)
   g2<-g2+theme(

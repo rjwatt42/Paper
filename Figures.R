@@ -8,11 +8,13 @@ zs<-0.25
 # choose one of the following two
 kvals<-seq(-0.1,0.7,0.1)
 kvals<-seq(-1,1,0.01)
+prior<-exp(-abs(kvals/0.3))
 
 g<-ggplot()
 plotCol<-"white"
 
 S<-dnorm(zs,0,1/sqrt(n-3))*(1-nullval)+dnorm(zs,atanh(kvals),1/sqrt(n-3))*nullval
+S<-S*prior
 pts<-data.frame(x=kvals,y=S)
 g<-g+geom_line(data=pts,aes(x=x,y=y),col=plotCol,lwd=1)
 if (length(kvals)<10)
@@ -27,6 +29,33 @@ g<-g+geom_text(data=ls,aes(x=x,y=y,label=label),color=plotCol,vjust=-0.5,hjust=-
 g<-g+scale_y_continuous(limits=c(0,2))
 g<-g+xlab(expression(lambda))+ylab("probability density")
 g+plotTheme
+
+##########################################
+# a likelihood version - with and without publication bias
+
+z<-seq(-2,2,0.01)
+nullP<-0.2
+
+nonnull<-ExpSamplingPDF(z,lambda=0.3,sigma=1/sqrt(42-3),shape=NA,remove_nonsig=TRUE) 
+null<-SingleSamplingPDF(z,0,sigma=1/sqrt(42-3),shape=NA,remove_nonsig=TRUE) 
+
+zcrit<-qnorm(1-alpha/2,0,1/sqrt(42-3))
+
+# nonnull$pdf[abs(z)<zcrit]<-0
+# null$pdf[abs(z)<zcrit]<-0
+
+gain<-sum(nonnull$pdf*(1-nullP)+null$pdf*nullP)*0.01
+
+g<-ggplot()
+    pts<-data.frame(x=z,y1=nonnull$pdf*(1-nullP),y2=null$pdf*nullP,y3=nonnull$pdf*(1-nullP)+null$pdf*nullP)
+    g<-g+geom_line(data=pts,aes(x=x,y=y3/gain),color="white",lwd=2,lty=1)
+    g<-g+geom_line(data=pts,aes(x=x,y=y1/gain),color="green",lwd=0.6,lty=1)
+    g<-g+geom_line(data=pts,aes(x=x,y=y2/gain),color="red",lwd=0.6,lty=1)
+
+    g<-g+ylab("Probability Density")+xlab(expression(z[s]))
+    g<-g+scale_y_continuous(limits=c(0,2))
+    g+plotTheme    
+      
 
 ##########################################
 # a likelihood version
