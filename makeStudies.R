@@ -106,6 +106,21 @@ showAnalysis(an)
 
 nsims<-1000
 
+#first we get the analysis for the real data
+metaAnal<-list(meta_fixedAnal="random",meta_pdf="Exp",meta_psigAnal=TRUE,meta_nullAnal=TRUE,append=FALSE)
+metaData<-list(result=list(rIV=my_data$r_s,nval=my_data$n))
+
+an<-runMetaAnalysis(metaAnal,metaData)
+
+nStudies=length(my_data$n)
+ns<-NA
+model="Exp"
+k=an$exp$Kmax
+pNull=an$exp$Nullmax
+actualS<-an$exp$Smax
+sigOnly=TRUE
+
+
 s<-c()
 np<-c()
 km<-c()
@@ -125,14 +140,11 @@ for (i in 1:nsims) {
   np<-c(np,an$exp$Nullmax)
 }
 
-
-target<- -30199
-
 g<-ggplot()
 pts<-data.frame(s=s)
 g<-g+geom_histogram(data=pts,aes(x=s, after_stat(ndensity)),color="white",fill="white")
-g<-g+geom_vline(xintercept=target,color="red")
-g<-g+geom_label(data=data.frame(x=target,y=1,label=paste0("Actual data = ",target)),aes(x=x,y=y,label=label))
+g<-g+geom_vline(xintercept=actualS,color="red")
+g<-g+geom_label(data=data.frame(x=actualS,y=1,label=paste0("Actual data = ",actualS)),aes(x=x,y=y,label=label))
 g<-g+xlab("log(lk)")+ylab("Density")
 
 g+plotTheme
