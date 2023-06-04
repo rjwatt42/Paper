@@ -32,7 +32,7 @@ makeStudies<-function(nStudies,ns,model="Exp",k=0.325,shape=NA,pNull=0.74,sigOnl
     zs<-zp+rnorm(nStudies*rpts,0,1/sqrt(ns-3))
     
     if (sigOnly) {
-      zcrit<-qnorm(1-alpha/2,0,1/sqrt(ns-3))
+      zcrit<-atanh(p2r(alpha,ns))
       ns<-ns[abs(zs)>zcrit]
       zs<-zs[abs(zs)>zcrit]
     }
@@ -76,6 +76,8 @@ makeStudies<-function(nStudies,ns,model="Exp",k=0.325,shape=NA,pNull=0.74,sigOnl
     nsAll<-c(nsAll,nsuse)
   }
   }
+  zsAll<-zsAll[1:nStudies]
+  nsAll<-nsAll[1:nStudies]
   return(list(r_s=tanh(zsAll),n=nsAll))
 }
 

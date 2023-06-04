@@ -24,6 +24,20 @@ r2p<-function(r,n,df1=1){
   
 }
 
+p2r<-function(p,n,df1=1) {
+  if (any(abs(n)<3)) {
+    print("p2r n-exception")
+    n[n<3]<-4
+  }
+  
+  f_vals <- qf(1-p,df1,n-2)
+  r_vals <- sqrt(f_vals)/sqrt(f_vals+(n-2))
+  return(r_vals)
+  
+  t_vals <- qt(p/2,n-2)
+  r_vals <- t_vals/sqrt(t_vals^2+(n-2))
+  r_vals
+}
 
 r2se<-function(r,n){
   if (any(abs(r)>1)) {

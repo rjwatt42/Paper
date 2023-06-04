@@ -39,7 +39,7 @@ nullP<-0.2
 nonnull<-ExpSamplingPDF(z,lambda=0.3,sigma=1/sqrt(42-3),shape=NA,remove_nonsig=TRUE) 
 null<-SingleSamplingPDF(z,0,sigma=1/sqrt(42-3),shape=NA,remove_nonsig=TRUE) 
 
-zcrit<-qnorm(1-alpha/2,0,1/sqrt(42-3))
+zcrit<-atanh(p2r(alpha,42))
 
 # nonnull$pdf[abs(z)<zcrit]<-0
 # null$pdf[abs(z)<zcrit]<-0
@@ -375,58 +375,4 @@ g<-g+theme(
 )
 
 g + plotTheme
-
-################################
-# back engineering the expected histogrm of sample effect sizes
-
-minN<-min(my_data$n)
-maxN=250
-maxZ=1.5
-
-shapes=c(0.25,1)
-scale=c(0.341,0.325)
-pnull<-c(0.6,0.74)
-types<-c("GenExp","Exp")
-
-z<-seq(0,maxZ,length.out=101)
-
-i<-1
-n_sig<-rep(0,maxN)
-ns<-c()
-
-prob_sig<-rep(0,maxN)
-mainD<-z*0
-for (ni in minN:maxN) {
-  n_sig[ni]<-sum(my_data$n==ni)
-  
-  sigma<-1/sqrt(ni-3)
-  zcrit<-qnorm(1-alpha/2,0,sigma)
-  
-  d<-GenExpSamplingPDF(z,scale[i],sigma,shapes[i])*(1-pnull[i])+
-     SingleSamplingPDF(z,0,sigma)*pnull
-  d<-d/(sum(d)*(z[2]-z[1]))
-  
-  prob_sig[ni]<-sum(d[abs(z)>zcrit])/sum(d)
-  d[abs(z)<=zcrit]<-0
-  mainD<-mainD+d*(n_sig[ni]/prob_sig[ni])
-  
-  ns<-c(ns,rep(ni,round(n_sig[ni]/prob_sig[ni])))
-  if (10*round(ni/10)==ni) print(ni)
-}
-print(fitdistr(ns-9,"gamma"))
-
-z_s<-abs(atanh(my_data$r_s))
-use<-(my_data$n<=maxN) & (my_data$n>=minN) & (z_s<maxZ)
-z_s<-z_s[use]
-mainD<-mainD/sum(mainD)*length(z_s)
-pts<-data.frame(x=z,y=mainD)
-ptsh<-data.frame(z=z_s)
-
-g<-ggplot()
-g<-g+geom_histogram(data=ptsh,aes(x=z),binwidth = (z[2]-z[1]),col="white",fill="white")
-g<-g+geom_line(data=pts,aes(x=x,y=y),col = "red",lwd=1)
-
-g<-g+xlab(expression(z[p]))+ylab("log10(PDF)")
-g + plotTheme
-
 

@@ -4,23 +4,12 @@ d_max=4
 SingleSamplingPDF<-function(z,lambda,sigma,shape,remove_nonsig=FALSE) {
   d1<-exp(-0.5*((z-lambda)^2/sigma^2))/sqrt(2*pi*sigma^2)
   if (remove_nonsig) {
-    zcrit<-qnorm(1-alpha/2,0,sigma)
+    zcrit<-atanh(p2r(alpha,1/sigma^2+3))
     d0<-1-(pnorm(zcrit,lambda,sigma)-pnorm(-zcrit,lambda,sigma))
   } else {
     d0<-1
   }
   return(list(pdf=d1,sig_pdf=d0))
-}
-SingleSamplingCDF<-function(zcrit,lambda,sigma,shape) {
-  1-(pnorm(zcrit,lambda,sigma)-pnorm(-zcrit,lambda,sigma))
-}
-
-
-UniformSamplingPDF<-function(z,lambda,sigma,shape) {
-  (1-tanh(z)^2)
-}
-UniformSamplingCDF<-function(zcrit,lambda,sigma,shape) {
-  1-(tanh(zcrit)-tanh(-zcrit))/2
 }
 
 
@@ -29,7 +18,7 @@ GaussSamplingPDF<-function(z,lambda,sigma,shape=NA,remove_nonsig=FALSE) {
   d1<-exp(-0.5*z^2/sigma2^2)/sqrt(2*pi*sigma2^2)
   
   if (remove_nonsig) {
-    zcrit<-qnorm(1-alpha/2,0,sigma)
+    zcrit<-atanh(p2r(alpha,1/sigma^2+3))
     d0<-GaussSamplingCDF(zcrit,lambda,sigma)
   } else {
     d0<-1
@@ -37,8 +26,8 @@ GaussSamplingPDF<-function(z,lambda,sigma,shape=NA,remove_nonsig=FALSE) {
   return(list(pdf=d1,sig_pdf=d0))
 }
 GaussSamplingCDF<-function(zcrit,lambda,sigma) {
-  sigma2<-sqrt(lambda^2+sigma^2)
-  1-(pnorm(zcrit,0,sigma2)-pnorm(-zcrit,0,sigma2))
+  sigma<-sqrt(lambda^2+sigma^2)
+  1-(pnorm(zcrit,0,sigma)-pnorm(-zcrit,0,sigma))
 }
 
 
@@ -48,7 +37,7 @@ ExpSamplingPDF<-function(z,lambda,sigma,shape=NA,remove_nonsig=FALSE) {
           lambda1*exp(-lambda1*(-z-sigma^2*lambda1/2))*(1+erf((-z-sigma^2*lambda1)/sqrt(2)/sigma)))
   
   if (remove_nonsig) {
-    zcrit<-qnorm(1-alpha/2,0,sigma)
+    zcrit<-atanh(p2r(alpha,1/sigma^2+3))
     d0<-ExpSamplingCDF(zcrit,lambda,sigma)
   } else {
     d0<-1
@@ -56,21 +45,22 @@ ExpSamplingPDF<-function(z,lambda,sigma,shape=NA,remove_nonsig=FALSE) {
   return(list(pdf=d1,sig_pdf=d0))
 }
 ExpSamplingCDF<-function(zcrit,lambda,sigma) {
-  lambda1<-1/lambda
+  lambda<-1/lambda
   z<-zcrit
   p1<-0.25*(
-    exp((lambda1*sigma/sqrt(2))^2)*exp(z*lambda1) * erfc(lambda1*sigma/sqrt(2) + z/sigma/sqrt(2)) -
-      exp((lambda1*sigma/sqrt(2))^2)/exp(z*lambda1) * erfc(lambda1*sigma/sqrt(2) - z/sigma/sqrt(2)) +
-        2*erf(z/sigma/sqrt(2))
+    exp((lambda*sigma/sqrt(2))^2)*exp(z*lambda) * erfc(lambda*sigma/sqrt(2) + z/sigma/sqrt(2))
+    - exp((lambda*sigma/sqrt(2))^2)/exp(z*lambda) * erfc(lambda*sigma/sqrt(2) - z/sigma/sqrt(2))
+    + 2*erf(z/sigma/sqrt(2))
   )
   z<--zcrit
   p2<-0.25*(
-      exp((lambda1*sigma/sqrt(2))^2)*exp(z*lambda1) * erfc(lambda1*sigma/sqrt(2) + z/sigma/sqrt(2))
-    - exp((lambda1*sigma/sqrt(2))^2)/exp(z*lambda1) * erfc(lambda1*sigma/sqrt(2) - z/sigma/sqrt(2))
+    exp((lambda*sigma/sqrt(2))^2)*exp(z*lambda) * erfc(lambda*sigma/sqrt(2) + z/sigma/sqrt(2))
+    - exp((lambda*sigma/sqrt(2))^2)/exp(z*lambda) * erfc(lambda*sigma/sqrt(2) - z/sigma/sqrt(2))
     + 2*erf(z/sigma/sqrt(2))
   )
   1-(p1-p2)
 }
+
 
 convolveWith<-function(zi,zpd,z,sigma) {
   d1<-z*0
@@ -82,7 +72,7 @@ convolveWith<-function(zi,zpd,z,sigma) {
 }
 
 removeNonSig<-function(zi,zpd,sigma) {
-  zcrit<-qnorm(1-alpha/2,0,sigma)
+  zcrit<-atanh(p2r(alpha,1/sigma^2+3))
   # d2<-GammaSamplingCDF(zcrit,lambda,sigma,gamma_shape)
   d2<-zcrit*0
   zcritUnique<-unique(zcrit)
@@ -120,20 +110,6 @@ GammaSamplingPDF<-function(z,lambda,sigma,gamma_shape=1,remove_nonsig=FALSE) {
   return(list(pdf=d1,sig_pdf=d2))
   
 }
-GammaSamplingCDF<-function(zcrit,lambda,sigma,gamma_shape=1) {
-  res<-zcrit*0
-  zcritUnique<-unique(zcrit)
-  for (i in 1:length(zcritUnique)) {
-    use<-which(zcrit==zcritUnique[i])
-    zi<-seq(-d_max,-zcritUnique[i],d_zi)
-    zi<-c(zi,-zcritUnique[i])
-    zd<-GammaSamplingPDF(zi,lambda,sigma[use[1]],gamma_shape)
-    areas<-(zd$pdf[1:(length(zi)-1)]+zd$pdf[2:length(zi)])/2*diff(zi)
-    p1<-sum( areas )
-    res[use]<-p1*2
-  }
-  res
-}
 
 GenExpSamplingPDF<-function(z,lambda,sigma,genexp_shape=1,remove_nonsig=FALSE) {
   
@@ -159,27 +135,12 @@ GenExpSamplingPDF<-function(z,lambda,sigma,genexp_shape=1,remove_nonsig=FALSE) {
   return(list(pdf=d1,sig_pdf=d2))
   
 }
-GenExpSamplingCDF<-function(zcrit,lambda,sigma,shape=1) {
-  res<-zcrit*0
-  zcritUnique<-unique(zcrit)
-  for (i in 1:length(zcritUnique)) {
-    use<-which(zcrit==zcritUnique[i])
-    zi<-seq(-d_max,-zcritUnique[i],d_zi)
-    zi<-c(zi,-zcritUnique[i])
-    zd<-GenExpSamplingPDF(zi,lambda,sigma[use[1]],shape)
-    areas<-(zd[1:(length(zi)-1)]+zd[2:length(zi)])/2*diff(zi)
-    p1<-sum( areas )
-    res[use]<-p1*2
-  }
-  res
-}
-
 
 
 getLogLikelihood<-function(z,n,worldDistr,worldDistK,worldDistNullP=0,remove_nonsig=FALSE) {
   sigma<-1/sqrt(n-3)
-  zcrit<-qnorm(1-alpha/2,0,sigma)
-  
+  zcrit<-atanh(p2r(alpha,n))
+
   # get nulls ready first
   if (any(worldDistNullP>0)) {
     nullPDF<-SingleSamplingPDF(z,0,sigma,NA,remove_nonsig)

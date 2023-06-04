@@ -47,7 +47,7 @@ my_data$n<-my_data$df2+2
 
 # remove non-sig results
 my_data$p<-r2p(my_data$r_s,my_data$n)
-waste<-(my_data$p>0.05)
+waste<-(my_data$p>alpha)
 my_data<-my_data[!waste,]
 print(paste("p>0.05",nrow(my_data)))
 
