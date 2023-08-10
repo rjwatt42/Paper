@@ -17,99 +17,158 @@ gridTheme=theme(plot.margin=margin(0,0,0,0,"cm"))
 
 
 ##########################################
-showAnalysis<-function(an,param=NULL) {
+showAnalysis<-function(an,label=NULL,param=NULL) {
   
   if (is.null(param)) {
-    s<-""
+    param<-an$metaAnalysis$meta_pdf
+    if (param[1]=="All") {
+      param<-c("Best")
+    }
+    for (i in 1:length(param)) {
+      s<-param[i]
+      switch(param[i],
+             "Single"={
+               d<-an$single
+             },
+             "Exp"={
+               d<-an$exp
+             },
+             "Gauss"={
+               d<-an$gauss
+             },
+             "Gamma"={
+               d<-an$gamma
+             },
+             "Best"={
+               s<-an$bestDist
+               d<-an$best
+             }
+      )
+      if (Pplus) {
+        print(paste0(label,s,
+                     "(",
+                     "P+","=",format((1-d$Nullmax)*100,digits=2),"%",
+                     "  k=",format(d$Kmax,digits=3),
+                     "  S=",format(d$Smax,digits=3),
+                     "  n=",format(length(an$result$rIV),digits=2),
+                     ")"))
+      } else {
+        print(paste0(label,s,
+                     "(",
+                     "P-=",format(d$Nullmax*100,digits=2),"%",
+                     "  k=",format(d$Kmax,digits=3),
+                     "  S=",format(d$Smax,digits=3),
+                     "  n=",format(length(an$result$rIV),digits=2),
+                     ")"))
+      }
+      
+    }
   } else {
+    s<-paste0(param,"=")
     if (param=="All") {
-      s<-paste0(param,": ",an$bestDist)
+      s<-paste0(label,": ",s,an$bestDist)
+      
+    }
+    if (param=="Best") {
+      s<-paste0(label,": ",s,an$bestDist)
+    }
+    
+    if (Pplus) {
+      print(paste0(s,
+                   "(",
+                   "P+","=",format((1-an$best$Nullmax)*100,digits=2),"%",
+                   "  k=",format(an$best$Kmax,digits=3),
+                   "  S=",format(an$best$Smax,digits=3),
+                   "  n=",format(length(an$result$rIV),digits=2),
+                   ")"))
     } else {
-      s<-paste0(param,": ")
+      print(paste0(s,
+                   "(",
+                   "P-=",format(an$best$Nullmax*100,digits=2),"%",
+                   "  k=",format(an$best$Kmax,digits=3),
+                   "  S=",format(an$best$Smax,digits=3),
+                   "  n=",format(length(an$result$rIV),digits=2),
+                   ")"))
     }
   }
-    print(paste0(s,
-               "(",
-               "H0=",format(an$bestNull*100,digits=2),"%",
-               "  k=",format(an$bestK,digits=3),
-               "  S=",format(an$bestS,digits=3),
-               "  n=",format(length(an$result$rIV),digits=2),
-               ")"))
 }
 
 ##########################################
 drawAnalysis<-function(an1,metaData1) {
   
-  ymax<- -25
-  ymin<- -50
   gain<-1000
+  nStudies<-length(metaData1$result$rIV)
   g<-ggplot()+plotBlankTheme+theme(plot.margin=margin(0,-0.2,0,0,"cm"))
-  g<-g+scale_x_continuous(limits = c(0,10),labels=NULL,breaks=NULL)+scale_y_continuous(limits = c(0,10),labels=NULL,breaks=NULL)
+  g<-g+scale_x_continuous(limits = c(0,10),labels=NULL,breaks=NULL)
+  g<-g+scale_y_continuous(limits = c(0,10),labels=NULL,breaks=NULL)
   
   g1<-ggplot()
   g2<-ggplot()
   
-  k<-seq(0.05,1,0.01)
-  nullP<-seq(0.0,0.95,0.01)
-  z<-atanh(metaData1$result$rIV)
-  n<-metaData1$result$nval
+  ymax<- -Inf
   
-  if (an1$metaAnalysis$meta_pdf=="Single"){
-    gain<-10000
-    Sk1<-getLogLikelihood(z,n,"Single",k,an1$single$Nullmax,remove_nonsig=TRUE)
-    Sk1<-Sk1/gain
+  drawType<-an1$metaAnalysis$meta_pdf
+  if (drawType[1]=="All")
+    drawType<-c("Exp","Gauss")
+  
+  for (i in 1:length(drawType)) {
+    switch(drawType[i],
+           "Single"={
+             d<-an1$single
+           },
+           "Exp"={
+             d<-an1$exp
+           },
+           "Gauss"={
+             d<-an1$gauss
+           },
+           "Gamma"={
+             d<-an1$gamma
+           }
+    )
     
+    k<-d$SX$kvals
+    Sk1<-d$SX$SkX
     pts1<-data.frame(x=k,y=Sk1)
-    g1<-g1+geom_line(data=pts1,aes(x=x,y=y,col="Single"),lwd=1)
     
-    Sn1<-getLogLikelihood(z,n,"Single",an1$single$Kmax,nullP,remove_nonsig=TRUE)
-    Sn1<-Sn1[1,]/gain
+    nullP<-d$SX$nullvals
+    Sn1<-d$SX$SnullX
+    if (Pplus) {
+      pts2<-data.frame(x=1-nullP,y=Sn1)
+    } else {
+      pts2<-data.frame(x=nullP,y=Sn1)
+    }
     
-    pts1<-data.frame(x=nullP,y=Sn1)
-    g2<-g2+geom_line(data=pts1,aes(x=x,y=y,col="Single"),lwd=1)
+    switch(drawType[i], # serious pain in the neck here: whats wrong with col=drawtype[i]?
+           "Single"={
+             g1<-g1+geom_line(data=pts1,aes(x=x,y=y,col="Single"),lwd=1)
+             g2<-g2+geom_line(data=pts2,aes(x=x,y=y,col="Single"),lwd=1)
+           },
+           "Exp"={
+             g1<-g1+geom_line(data=pts1,aes(x=x,y=y,col="Exp"),lwd=1)
+             g2<-g2+geom_line(data=pts2,aes(x=x,y=y,col="Exp"),lwd=1)
+           },
+           "Gauss"={
+             g1<-g1+geom_line(data=pts1,aes(x=x,y=y,col="Gauss"),lwd=1)
+             g2<-g2+geom_line(data=pts2,aes(x=x,y=y,col="Gauss"),lwd=1)
+           },
+           "Gamma"={
+             g1<-g1+geom_line(data=pts1,aes(x=x,y=y,col="Gamma"),lwd=1)
+             g2<-g2+geom_line(data=pts2,aes(x=x,y=y,col="Gamma"),lwd=1)
+           }
+    )
+    ymax<- max(c(Sk1,ymax))
   }
   
-  if (any(an1$metaAnalysis$meta_pdf=="Exp") || an1$metaAnalysis$meta_pdf=="All") {
-    Sk1<-getLogLikelihood(z,n,"Exp",k,an1$exp$Nullmax,remove_nonsig=TRUE)
-    Sk1<-Sk1/gain
-    
-    pts1<-data.frame(x=k,y=Sk1)
-    g1<-g1+geom_line(data=pts1,aes(x=x,y=y,col="Exp"),lwd=1)
-    
-    Sn1<-getLogLikelihood(z,n,"Exp",an1$exp$Kmax,nullP,remove_nonsig=TRUE)
-    Sn1<-Sn1[1,]/gain
-    
-    pts1<-data.frame(x=nullP,y=Sn1)
-    g2<-g2+geom_line(data=pts1,aes(x=x,y=y,col="Exp"),lwd=1)
-  }
+  g1<-g1+scale_color_manual(name = NULL, values = c("Single"="green","Exp" = "red", "Gauss" = "yellow","Gamma"="blue"))
+  g2<-g2+scale_color_manual(name = NULL, values = c("Single"="green","Exp" = "red", "Gauss" = "yellow","Gamma"="blue"))
   
-  if (any(an1$metaAnalysis$meta_pdf=="Gauss") || an1$metaAnalysis$meta_pdf=="All") {
-    Sk1<-getLogLikelihood(z,n,"Gauss",k,an1$gauss$Nullmax,remove_nonsig=TRUE)
-    Sk1<-Sk1/gain
-    
-    pts1<-data.frame(x=k,y=Sk1)
-    g1<-g1+geom_line(data=pts1,aes(x=x,y=y,col="Gauss"),lwd=1)
-    
-    Sn1<-getLogLikelihood(z,n,"Gauss",an1$gauss$Kmax,nullP,remove_nonsig=TRUE)
-    Sn1<-Sn1[1,]/gain
-    
-    pts<-data.frame(x=nullP,y=Sn1)
-    g2<-g2+geom_line(data=pts,aes(x=x,y=y,col="Gauss"),lwd=1)
-  }
-  g1<-g1+scale_color_manual(name = NULL, values = c("Exp" = "red", "Gauss" = "yellow","Single"="green"))
-  g2<-g2+scale_color_manual(name = NULL, values = c("Exp" = "red", "Gauss" = "yellow","Single"="green"))
+  ymin<-ymax-nStudies
+  ymax<-ymax+nStudies/5
   
-  if (an1$metaAnalysis$meta_pdf=="Gamma") {
-    Sk1<-getLogLikelihood(z,n,"Gamma",k,an1$exp$Nullmax,remove_nonsig=TRUE)
-    Sk1<-Sk1/gain
-    
-    pts1<-data.frame(x=k,y=Sk1)
-    g1<-g1+geom_line(data=pts,aes(x=x,y=y,col="green"),lwd=0.5)
-  }
-
   g1<-g1+scale_y_continuous(limits=c(ymin,ymax))
   g1<-g1+scale_x_continuous(limits=c(-0.05,1.05),breaks=c(0,0.25,0.5,0.75,1),labels = c("0","0.25","0.5","0.75","1"))
-  g1<-g1+xlab(expression(lambda))+ylab(paste0("likelihood/",gain))
+  g1<-g1+xlab(Llabel)+ylab(Slabel)
   g1<-g1+theme(
     legend.background = element_rect(fill="#666666"),
     legend.key = element_rect(fill="#666666"),
@@ -126,7 +185,7 @@ drawAnalysis<-function(an1,metaData1) {
   
   g2<-g2+scale_y_continuous(limits=c(ymin,ymax),breaks=c())
   g2<-g2+scale_x_continuous(limits=c(-0.05,1.05),breaks=c(0,0.25,0.5,0.75,1),labels = c("0","0.25","0.5","0.75","1"))
-  g2<-g2+xlab("p(null)")+ylab(NULL)
+  g2<-g2+xlab(Plabel)+ylab(NULL)
   g2<-g2+theme(
     legend.background = element_rect(fill="#666666"),
     legend.key = element_rect(fill="#666666"),
@@ -146,14 +205,12 @@ drawAnalysis<-function(an1,metaData1) {
   g
 }
 ##########################################
-doublePlot<-function(x1,xlb,y1,ylb1,y2=NULL,ylb2=NULL,y3=NULL,ylb3=NULL) {
-  xtick<-NULL
+doublePlot<-function(x1,xlb,y1,ylb1,y2=NULL,ylb2=NULL,y3=NULL,ylb3=NULL,xtick=NULL,xlog=FALSE,legendLabels=c("real","sim")) {
+  
   if (!is.numeric(x1)) {
     xtick<-x1
     x1<-1:length(x1)
   }
-  if (!is.vector(y1)) y1<-as.vector(y1)
-  if (!is.vector(y2)) y2<-as.vector(y2)
   if (length(x1)-length(y1)==1) {
     x1<-(x1[1:(length(x1)-1)]+x1[2:length(x1)])/2
   }
@@ -161,56 +218,133 @@ doublePlot<-function(x1,xlb,y1,ylb1,y2=NULL,ylb2=NULL,y3=NULL,ylb3=NULL) {
   g<-ggplot()+plotBlankTheme+theme(plot.margin=margin(0,-0.2,0,-1,"cm"))
   g<-g+scale_x_continuous(limits = c(0,10),labels=NULL,breaks=NULL)+scale_y_continuous(limits = c(0,10),labels=NULL,breaks=NULL)
   
-  ylim1<-c(min(min(y1),0.1),max(max(y1)+0.1,0.6))
+  ylim1<-c(min(y1),max(y1))+c(-1,1)*(max(y1)-min(y1))*0.1
+  if (ylb1==Llabel) {
+    ylim1<-c(0,max(max(y1,na.rm=TRUE)+0.1,0.6))
+  }
+  if (ylb1=="w") {
+    ylim1<-c(0,1)
+  }
+  if (ylb1=="fdr") {
+    ylim1<-c(0,1)
+  }
   g1<-ggplot()+scale_y_continuous(limits=ylim1)
+  xlim<-c(min(x1),max(x1))
   if (!is.null(xtick)) {
-    g1<-g1+scale_x_continuous(limits=c(0,length(x1)+1),breaks=1:length(x1),labels=xtick)
-    if (max(nchar(xtick))>2) {
+    if (xlog) {
+      xl<-log10(x1)
+      g1<-g1+scale_x_log10(limits=10^(c(min(xl),max(xl))+c(-1,1)*(max(xl)-min(xl))/4))
+    } else {
+      g1<-g1+scale_x_continuous(limits=c(0,length(x1)+1),breaks=1:length(x1),labels=xtick)
+    }
+    if (!isempty(xtick) && max(nchar(xtick))>2) {
       g1<-g1+theme(axis.text.x=element_text(angle = 90, hjust = 1))
     }
   } else {
-    g1<-g1+scale_x_continuous(limits=c(min(x1),max(x1))+c(-1,1)*(max(x1)-min(x1))/4)
-  }
-  pts<-data.frame(x1=x1,y1=y1)
-  if (is.null(xtick)) {
-    g1<-g1+geom_line(data=pts,aes(x=x1,y=y1))
-  } else {
-    dx<-x1[2]-x1[1]
-    for (i in 1:length(x1)) {
-      ptsa<-data.frame(x1=x1[i]+dx*c(-1,1)*0.65,y1=y1[i]+c(0,0))
-      g1<-g1+geom_line(data=ptsa,aes(x=x1,y=y1))
+    if (xlog) {
+      xl<-log10(x1)
+      g1<-g1+scale_x_log10(limits=10^(c(min(xl),max(xl))+c(-1,1)*(max(xl)-min(xl))/4))
+    } else {
+      g1<-g1+scale_x_continuous(limits=c(min(x1),max(x1))+c(-1,1)*(max(x1)-min(x1))/4)
     }
-    pts<-data.frame(x1=x1,y1=y1)
   }
-  g1<-g1+geom_point(data=pts,aes(x=x1,y=y1),fill="yellow",size=4,shape=21)
+  cols<-c("yellow","red")
+  for (j in 1:nrow(y1)) {
+    pts<-data.frame(x1=x1,y1=y1[j,])
+    if (is.numeric(x1)) {
+      g1<-g1+geom_line(data=pts,aes(x=x1,y=y1))
+    } else {
+      dx<-x1[2]-x1[1]
+      for (i in 1:length(x1)) {
+        ptsa<-data.frame(x1=x1[i]+dx*c(-1,1)*0.65,y1=y1[j,i]+c(0,0))
+        g1<-g1+geom_line(data=ptsa,aes(x=x1,y=y1))
+      }
+    }
+    g1<-g1+geom_point(data=pts,aes(x=x1,y=y1),fill=cols[j],size=4,shape=21)
+  }
+  if (nrow(y1)>1) {
+    if (xlog) {
+      xp<-10^(log10(xlim[1])+diff(log10(xlim))*0.01)
+      xp1<-10^(log10(xlim[1])+diff(log10(xlim))*0.05)
+    } else {
+      xp<-xlim[1]+diff(xlim)*0.01
+      xp1<-xlim[1]+diff(xlim)*0.05
+    }
+    legend<-data.frame(x=xp,y=ylim1[1]+diff(ylim1)*0.2)
+    g1<-g1+geom_point(data=legend,aes(x=x,y=y),fill=cols[1],size=4,shape=21)
+    legendText<-data.frame(x=xp1,y=ylim1[1]+diff(ylim1)*0.2,label=legendLabels[1])
+    g1<-g1+geom_text(data=legendText,aes(x=x,y=y,label=label),color="white",hjust=-1)
+    
+    legend<-data.frame(x=xp,y=ylim1[1]+diff(ylim1)*0.1)
+    g1<-g1+geom_point(data=legend,aes(x=x,y=y),fill=cols[2],size=4,shape=21)
+    legendText<-data.frame(x=xp1,y=ylim1[1]+diff(ylim1)*0.1,label=legendLabels[2])
+    g1<-g1+geom_text(data=legendText,aes(x=x,y=y,label=label),color="white",hjust=-1)
+  }
   g1<-g1+xlab(xlb)+ylab(ylb1)
   nplot<-1
   
   if (!is.null(y2)) {
-  ylim2<-c(min(min(y2),0.1),max(max(y2)+0.1,0.8))
-  g2<-ggplot()+scale_y_continuous(limits=ylim2)
-  if (!is.null(xtick)) {
-    g2<-g2+scale_x_continuous(limits=c(0,length(x1)+1),breaks=1:length(x1),labels=xtick)
-    if (max(nchar(xtick))>2) {
-      g2<-g2+theme(axis.text.x=element_text(angle = 90, hjust = 1))
+    if (Pplus && ylb2==Plabel) {
+      y2<-1-y2
     }
-  } else {
-    g2<-g2+scale_x_continuous(limits=c(min(x1),max(x1))+c(-1,1)*(max(x1)-min(x1))/4)
-  }
-  pts<-data.frame(x2=x1,y2=y2)
-  if (is.null(xtick)) {
-    g2<-g2+geom_line(data=pts,aes(x=x2,y=y2))
-  } else {
-    dx<-x1[2]-x1[1]
-    for (i in 1:length(x1)) {
-      ptsa<-data.frame(x2=x1[i]+dx*c(-1,1)*0.65,y2=y2[i]+c(0,0))
-      g2<-g2+geom_line(data=ptsa,aes(x=x2,y=y2))
+    ylim2<-c(min(y2),max(y2))+c(-1,1)*(max(y2)-min(y2))*0.1
+    # ylim2<-c(0,1)
+    g2<-ggplot()+scale_y_continuous(limits=ylim2)
+    if (!is.null(xtick)) {
+      if (xlog) {
+        xl<-log10(x1)
+        g2<-g2+scale_x_log10(limits=10^(c(min(xl),max(xl))+c(-1,1)*(max(xl)-min(xl))/4))
+      } else {
+        g2<-g2+scale_x_continuous(limits=c(0,length(x1)+1),breaks=1:length(x1),labels=xtick)
+      }
+      if (max(nchar(xtick))>2) {
+        g2<-g2+theme(axis.text.x=element_text(angle = 90, hjust = 1))
+      }
+      if (max(nchar(xtick))>2) {
+        g2<-g2+theme(axis.text.x=element_text(angle = 90, hjust = 1))
+      }
+    } else {
+      if (xlog) {
+        xl<-log10(x1)
+        g2<-g2+scale_x_log10(limits=10^(c(min(xl),max(xl))+c(-1,1)*(max(xl)-min(xl))/4))
+      } else {
+        g2<-g2+scale_x_continuous(limits=c(min(x1),max(x1))+c(-1,1)*(max(x1)-min(x1))/4)
+      }
     }
-    pts<-data.frame(x2=x1,y2=y2)
-  }
-  g2<-g2+geom_point(data=pts,aes(x=x2,y=y2),fill="yellow",size=4,shape=21)
-  g2<-g2+xlab(xlb)+ylab(ylb2)
-  nplot<-2
+    for (j in 1:nrow(y2)) {
+      pts<-data.frame(x2=x1,y2=y2[j,])
+      if (is.numeric(x1)) {
+        g2<-g2+geom_line(data=pts,aes(x=x2,y=y2))
+      } else {
+        dx<-x1[2]-x1[1]
+        for (i in 1:length(x1)) {
+          ptsa<-data.frame(x2=x1[i]+dx*c(-1,1)*0.65,y2=y2[j,i]+c(0,0))
+          g2<-g2+geom_line(data=ptsa,aes(x=x2,y=y2))
+        }
+      }
+      g2<-g2+geom_point(data=pts,aes(x=x2,y=y2),fill=cols[j],size=4,shape=21)
+    }
+    if (nrow(y2)>1) {
+      if (xlog) {
+        xp<-10^(log10(xlim[1])+diff(log10(xlim))*0.01)
+        xp1<-10^(log10(xlim[1])+diff(log10(xlim))*0.05)
+      } else {
+        xp<-xlim[1]+diff(xlim)*0.01
+        xp1<-xlim[1]+diff(xlim)*0.05
+      }
+      legend<-data.frame(x=xp,y=ylim2[1]+diff(ylim2)*0.2)
+      g2<-g2+geom_point(data=legend,aes(x=x,y=y),fill=cols[1],size=4,shape=21)
+      legendText<-data.frame(x=xp1,y=ylim2[1]+diff(ylim2)*0.2,label=legendLabels[1])
+      g2<-g2+geom_text(data=legendText,aes(x=x,y=y,label=label),color="white",hjust=-1)
+      
+      legend<-data.frame(x=xp,y=ylim2[1]+diff(ylim2)*0.1)
+      g2<-g2+geom_point(data=legend,aes(x=x,y=y),fill=cols[2],size=4,shape=21)
+      legendText<-data.frame(x=xp1,y=ylim2[1]+diff(ylim2)*0.1,label=legendLabels[2])
+      g2<-g2+geom_text(data=legendText,aes(x=x,y=y,label=label),color="white",hjust=-1)
+      
+    }
+    g2<-g2+xlab(xlb)+ylab(ylb2)
+    nplot<-2
   }
   
   if (!is.null(y3)) {

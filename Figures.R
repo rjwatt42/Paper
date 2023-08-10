@@ -1,4 +1,19 @@
 ##########################################
+# example distribution of sample sizes
+
+nv<-seq(5,250)
+nd<-dgamma(nv-4,shape=1.4,scale=45)
+nd<-nd/sum(nd)
+
+g<-ggplot()
+n<-data.frame(x=c(nv,rev(nv)),y=c(nd,nd*0))
+g<-g+geom_polygon(data=n,aes(x=x,y=y),fill="white")
+g<-g+xlab("n")+ylab("frequency")+scale_y_continuous(breaks=c())
+
+g+plotTheme
+
+
+##########################################
 # probability densities vs lambda
 
 nullval<-0.5
@@ -27,14 +42,14 @@ ls<-data.frame(x=maxK,y=maxS,label=paste0("max=",format(maxK,digits=3)))
 g<-g+geom_text(data=ls,aes(x=x,y=y,label=label),color=plotCol,vjust=-0.5,hjust=-0.1)
 
 g<-g+scale_y_continuous(limits=c(0,2))
-g<-g+xlab(expression(lambda))+ylab("probability density")
+g<-g+xlab(Llabel)+ylab("probability density")
 g+plotTheme
 
 ##########################################
 # a likelihood version - with and without publication bias
 
 z<-seq(-2,2,0.01)
-nullP<-0.2
+nullP<-0.45
 
 nonnull<-ExpSamplingPDF(z,lambda=0.3,sigma=1/sqrt(42-3),shape=NA,remove_nonsig=TRUE) 
 null<-SingleSamplingPDF(z,0,sigma=1/sqrt(42-3),shape=NA,remove_nonsig=TRUE) 
@@ -52,7 +67,7 @@ g<-ggplot()
     g<-g+geom_line(data=pts,aes(x=x,y=y1/gain),color="green",lwd=0.6,lty=1)
     g<-g+geom_line(data=pts,aes(x=x,y=y2/gain),color="red",lwd=0.6,lty=1)
 
-    g<-g+ylab("Probability Density")+xlab(expression(z[s]))
+    g<-g+xlab(expression(z[s]))+ylab("Probability Density")
     g<-g+scale_y_continuous(limits=c(0,2))
     g+plotTheme    
       
@@ -78,7 +93,7 @@ rymax<-c()
 rymin<-c()
 if (nsamp>1 && nsamp<21) {
   for (z in zs) {
-    expS<-getLogLikelihood(z,n,analysisDistribution,kvals,nullval,psig)
+    expS<-getLogLikelihood(z,n,df1=1,analysisDistribution,kvals,nullval,psig)
     rymax<-c(rymax,max(expS))
     rymin<-c(rymin,min(expS))
     pts<-data.frame(x=kTrans(kvals),y=expS)
@@ -94,7 +109,7 @@ for (ai in 1:length(analysisDistribution)) {
     kvals<-seq(0.05,1,length.out=101)
   }
   
-  expS<-getLogLikelihood(zs,n,analysisDistribution[ai],kvals,nullval,psig)
+  expS<-getLogLikelihood(zs,n,df1=1,analysisDistribution[ai],kvals,nullval,psig)
   # expS<-expS/length(zs)
   rymax<-c(rymax,max(expS))
   rymin<-c(rymin,min(expS))
@@ -120,7 +135,7 @@ g<-g+geom_vline(xintercept=kTrans(kmax),color=mcol)
 ls<-data.frame(x=kTrans(kmax),y=maxS,label=paste0("max=",d,"(",format(kmax,digits=3),")"))
 g<-g+geom_text(data=ls,aes(x=x,y=y,label=label),color=mcol,vjust=-0.5,hjust=-0.1)
 
-g<-g+xlab(expression(lambda))+ylab("log(likelihood)")
+g<-g+xlab(Llabel)+ylab("log(likelihood)")
 
 ylim<-c(min(rymin),max(rymax))
 plotRange<-diff(ylim)
@@ -161,7 +176,7 @@ rymax<-c()
 rymin<-c()
 if (nsamp<21) {
   for (z in zs) {
-    expS<-getLogLikelihood(z,n,analysisDistribution[1],atanh(kvals),null,psig)
+    expS<-getLogLikelihood(z,n,df1=1,analysisDistribution[1],atanh(kvals),null,psig)
     rymax<-c(rymax,max(expS))
     rymin<-c(rymin,min(expS))
     pts<-data.frame(x=kvals,y=expS)
@@ -170,7 +185,7 @@ if (nsamp<21) {
 }
 maxD<- -Inf
 for (ai in 1:length(analysisDistribution)) {
-  expS<-getLogLikelihood(zs,n,analysisDistribution[ai],atanh(kvals),null,psig)
+  expS<-getLogLikelihood(zs,n,df1=1,analysisDistribution[ai],atanh(kvals),null,psig)
   rymax<-c(rymax,max(expS))
   rymin<-c(rymin,min(expS))
 
@@ -193,7 +208,7 @@ if (length(analysisDistribution)==1) {
   g<-g+geom_text(data=ls,aes(x=x,y=y,label=label),color=cols[maxDist],vjust=-0.5,hjust=-0.1)
 }
 
-g<-g+xlab(expression(lambda))+ylab("log(likelihood)")
+g<-g+xlab(Llabel)+ylab("log(likelihood)")
 # g<-g+scale_x_continuous(breaks=c(-2,-1,0),labels=c(0.001,0.1,1))
 if (length(analysisDistribution)>1) {
   rymin<- -200
@@ -208,7 +223,7 @@ g+plotTheme
 sourceDistribution="Exp"
 analysisDistribution<-"Exp"
 psig<-FALSE
-null<-0.5
+null<-0.45
 k<-atanh(0.25)
 
 showLegend<-FALSE
@@ -227,24 +242,28 @@ n<-175
 zs<-rnorm(nsamp,atanh(rp),1/sqrt(n-3))
 
 kvals<-seq(0.05,1,length.out=51)
-nullvals<-seq(0,0.999,length.out=101)
+plusvals<-seq(0,0.999,length.out=101)
 
-expS<-getLogLikelihood(zs,n,analysisDistribution,kvals,nullvals,psig)
+expS<-getLogLikelihood(zs,n,df1=1,analysisDistribution,kvals,1-plusvals,psig)
 threshold<-quantile(expS,0.25)
 expS[expS < threshold]<-threshold
 
 df<-melt(expS)
-g<-ggplot(df)+geom_tile(aes(x=(X2-1)/100*(nullvals[101]-nullvals[1])+nullvals[1],y=(X1-1)*(kvals[51]-kvals[1])/50+kvals[1],fill = value),show.legend=showLegend)
-g<-g+stat_contour(data=df,aes(x=(X2-1)/100*(nullvals[101]-nullvals[1])+nullvals[1],y=(X1-1)*(kvals[51]-kvals[1])/50+kvals[1],z = value),breaks=max(expS)-log(10),color="red")
+g<-ggplot(df)+geom_tile(aes(x=(X2-1)/100*(plusvals[101]-plusvals[1])+plusvals[1],y=(X1-1)*(kvals[51]-kvals[1])/50+kvals[1],fill = value),show.legend=showLegend)
+g<-g+stat_contour(data=df,aes(x=(X2-1)/100*(plusvals[101]-plusvals[1])+plusvals[1],y=(X1-1)*(kvals[51]-kvals[1])/50+kvals[1],z = value),breaks=max(expS)-log(10),color="red")
 
 use<-which(expS==max(expS), arr.ind = TRUE)
-g<-g+geom_vline(xintercept=nullvals[use[1,2]],color="red")
+g<-g+geom_vline(xintercept=plusvals[use[1,2]],color="red")
 g<-g+geom_hline(yintercept=kvals[use[1,1]],color="red")
-g<-g+geom_text(data=data.frame(x=nullvals[use[1,2]],y=kvals[use[1,1]],
-                               label=paste("\u03BB","=",format(kvals[use[1,1]],digits=2),"\n p(null)=",format(nullvals[use[1,2]],digits=2))),
-               aes(x=x,y=y,label=label),color="white",vjust=-0.5)
 
-g<-g+xlab(bquote(p[null]))+ylab(expression(lambda))
+label1<-bquote(.(Llabel)==.(round(100*kvals[use[1,1]])/100))
+labelLoc<-data.frame(x=plusvals[use[1,2]],y=kvals[use[1,1]])
+g<-g+geom_text(data=labelLoc,aes(x=x,y=y),label=deparse(label1),color="white",vjust=-0.5,hjust=1.1,parse=TRUE)
+label2<-bquote(.(Plabel)==.(round(100*plusvals[use[1,2]])/100))
+labelLoc<-data.frame(x=plusvals[use[1,2]],y=kvals[use[1,1]])
+g<-g+geom_text(data=labelLoc,aes(x=x,y=y),label=deparse(label2),color="white",vjust=-0.5,hjust=-0.1,parse=TRUE)
+
+g<-g+xlab(Plabel)+ylab(Llabel)
 g<-g + plotTheme + scale_fill_gradient(low="white",high=maincolours$windowC)
 g+theme(panel.background = element_rect(fill="white", colour="black"))
 
@@ -263,7 +282,7 @@ for (si in 1:length(shapes)) {
   g<-g+geom_line(data=pts,aes(x=x,y=y,col=shape))
 }
 
-g<-g+xlab(expression(z[p]))+ylab("probability density")
+g<-g+xlab(expression(z[p]))+ylab("Probability Density")
 g<-g+scale_color_gradient2(name="log2(k)",low="white", high="#FF2222", 
                            limits = c(0, 4))
 g<-g+theme(
@@ -308,7 +327,7 @@ for (si in 1:length(shapes)) {
   # )
   print(sum(z*d)/sum(d))
 }
-g<-g+xlab(expression(z[p]))+ylab("probability density")
+g<-g+xlab(expression(z[p]))+ylab("Probability Density")
 # g<-g+scale_color_continuous()
 g<-g+scale_color_gradient2(name="log2(a)",low="#8888FF", mid="white", high="#FF2222", 
                            limits = c(-2,2))
@@ -358,7 +377,7 @@ varnames <- names(pts)[2:ncol(pts)]
 add_lines <- lapply(varnames, function(i) geom_line(aes_q(y = as.name(i), col = i),lwd=1))
 g<-g+add_lines
 
-g<-g+xlab(expression(z[p]))+ylab("log10(PDF)")
+g<-g+xlab(expression(z[p]))+ylab("Probability Density")
 g<-g+scale_color_discrete(name="",labels=types)
 
 g<-g+theme(
@@ -375,4 +394,101 @@ g<-g+theme(
 )
 
 g + plotTheme
+
+#########################################
+# n vs year
+
+df<-data.frame(x=my_data$year,y=log10(my_data$n))
+use<-my_data$n<=250 
+df<-df[use,]
+
+g<-ggplot(df) + geom_bin_2d(aes(x=x,y=y),bins=30,show.legend=FALSE,drop=FALSE) 
+
+g<-g+ylab("n")+xlab('year')
+g<-g + scale_fill_gradient(low="white",high="red")
+g + plotTheme + theme(panel.background=element_rect(fill="white", colour="black"),) 
+
+years<-1985:2013
+nmean<-c()
+for (year in years) {
+  use<-my_data$year==year
+  nmean<-c(nmean,median(my_data$n[use]))
+}
+df<-data.frame(x=years,y=(nmean))
+g<-ggplot()+geom_line(data=df,aes(x=x,y=y),color='yellow',lwd=1)
+g<-g+scale_y_continuous(limits=c(0,100))
+g<-g+xlab("year")+ylab("median(n)")
+g + plotTheme
+
+
+#########################################
+#  n vs journal
+
+journals<-unique(my_data$journal)
+years<-1985:2013
+
+
+nmean<-c()
+for (journal in journals) {
+  use<-my_data$journal==journal
+  nmean<-c(nmean,median(my_data$n[use]))
+}
+
+dispOrder<-order(nmean)
+
+df<-data.frame(x=1:length(dispOrder),y=nmean[dispOrder])
+g<-ggplot()+geom_point(data=df,aes(x=x,y=y),color='yellow',size=4)
+g<-g+scale_y_continuous(limits=c(0,110))
+g<-g+scale_x_continuous(breaks=1:length(dispOrder),labels=journals[dispOrder])
+g<-g+xlab("journal")+ylab("median(n)")
+g + plotTheme
+
+#########################################
+#  t/r vs journal
+
+journals<-unique(my_data$journal)
+
+propRT<-c()
+for (journal in journals) {
+  ts<-my_data$journal==journal & my_data$Statistic=="t"
+  rs<-my_data$journal==journal & my_data$Statistic=="r"
+  propRT<-c(propRT,sum(ts)/sum(my_data$journal==journal))
+}
+
+df<-data.frame(x=1:length(dispOrder),y=propRT[dispOrder])
+g<-ggplot()+geom_point(data=df,aes(x=x,y=y),color='yellow',size=4)
+g<-g+scale_y_continuous(limits=c(0,0.6))
+g<-g+scale_x_continuous(breaks=1:length(dispOrder),labels=journals[dispOrder])
+g<-g+xlab("journal")+ylab("t/r")
+g + plotTheme
+
+
+#########################################
+#  n vs year by journal
+
+journals<-unique(my_data$journal)
+
+years<-seq(1985,2015,5)
+
+nmean<-matrix(NA,nrow=length(journals),ncol=length(years)-1)
+for (j in 1:length(journals)) {
+  j_use<-my_data$journal==journals[j]
+  for (y in 1:(length(years)-1)) {
+    y_use<-(my_data$year>=years[y]) & (my_data$year<years[y+1])
+    nmean[j,y]<-median(my_data$n[j_use & y_use])
+  }
+}
+
+pyears<-(years[1:(length(years)-1)]+years[2:length(years)])/2
+g<-ggplot()
+for (j in 1:length(journals)) {
+df<-data.frame(x=pyears,y=nmean[j,],color=factor(journals[j]))
+g<-g+geom_line(data=df,aes(x=x,y=y,color=color))
+g<-g+geom_point(data=df,aes(x=x,y=y,color=color),size=4)
+}
+g<-g+scale_color_discrete()
+g<-g+scale_y_continuous(limits=c(0,max(nmean,na.rm=TRUE)+5))
+g<-g+xlab("year")+ylab("median(n)")
+g + plotTheme
+
 

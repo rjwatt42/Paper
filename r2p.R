@@ -1,6 +1,3 @@
-alpha<-0.05
-
-
 
 r2p<-function(r,n,df1=1){
   if (!is.numeric(r) || !is.numeric(n)) {return(1)}
@@ -13,15 +10,14 @@ r2p<-function(r,n,df1=1){
     print("r2p n-exception")
     n[n<3]<-4
   }
-  df2<-n-(sum(df1)+1)
-  if (any(df1>1)) {
-    Fvals<-r^2/(1-r^2)*df2/df1
-    (1-pf(Fvals,df1,df2))
-  } else {
-    t_vals<-r/r2se(r,n)
-    (1-pt(abs(t_vals),df2))*2
-  }
+  df2<-n-(df1+1)
   
+    Fvals<-r^2/(1-r^2)*df2/df1
+    p<-(1-pf(Fvals,df1,df2))
+    return(p)
+    
+  #   t_vals<-r/r2se(r,n)
+  #   p<-(1-pt(abs(t_vals),df2))*2
 }
 
 p2r<-function(p,n,df1=1) {
@@ -29,10 +25,11 @@ p2r<-function(p,n,df1=1) {
     print("p2r n-exception")
     n[n<3]<-4
   }
+  df2<-n-(df1+1)
   
-  f_vals <- qf(1-p,df1,n-2)
-  r_vals <- sqrt(f_vals)/sqrt(f_vals+(n-2))
-  return(r_vals)
+  Fvals <- qf(1-p,df1,df2)
+  r <- sqrt(Fvals*df1)/sqrt(Fvals*df1+df2)
+  return(r)
   
   t_vals <- qt(p/2,n-2)
   r_vals <- t_vals/sqrt(t_vals^2+(n-2))
