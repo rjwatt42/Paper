@@ -4,7 +4,9 @@ mainTheme=theme(panel.background = element_rect(fill="#666666", colour="black"),
                 panel.grid.major = element_line(linetype="blank"),panel.grid.minor = element_line(linetype="blank"),
                 plot.background = element_rect(fill=maincolours$graphC, colour=maincolours$graphC),
                 plot.margin = margin(2,2,1,1,"cm"))
-SMplotTheme=theme(plot.title=element_text(size=16,face="bold"),axis.title=element_text(size=16),axis.text.x=element_text(size=10),axis.text.y=element_text(size=10))
+SMplotTheme=theme(plot.title=element_text(size=16,face="bold"),
+                  axis.title=element_text(size=16,face="bold"),
+                  axis.text=element_text(size=10,face="bold"))
 plotTheme=mainTheme+SMplotTheme
 
 plotBlankTheme=theme(panel.background = element_rect(fill=maincolours$graphC, colour=maincolours$graphC),
@@ -205,7 +207,7 @@ drawAnalysis<-function(an1,metaData1) {
   g
 }
 ##########################################
-doublePlot<-function(x1,xlb,y1,ylb1,y2=NULL,ylb2=NULL,y3=NULL,ylb3=NULL,xtick=NULL,xlog=FALSE,legendLabels=c("real","sim")) {
+doublePlot<-function(x1,xlb,y1,ylb1,y2=NULL,ylb2=NULL,y3=NULL,ylb3=NULL,xtick=NULL,xlog=FALSE,legendLabels=c("real","sim"),legendX="left",legendY="bottom") {
   
   if (!is.numeric(x1)) {
     xtick<-x1
@@ -222,12 +224,12 @@ doublePlot<-function(x1,xlb,y1,ylb1,y2=NULL,ylb2=NULL,y3=NULL,ylb3=NULL,xtick=NU
   if (ylb1==Llabel) {
     ylim1<-c(0,max(max(y1,na.rm=TRUE)+0.1,0.6))
   }
-  if (ylb1=="w") {
-    ylim1<-c(0,1)
-  }
-  if (ylb1=="fdr") {
-    ylim1<-c(0,1)
-  }
+  # if (ylb1=="w") {
+  #   ylim1<-c(0,1)
+  # }
+  # if (ylb1=="fdr") {
+  #   ylim1<-c(0,1)
+  # }
   g1<-ggplot()+scale_y_continuous(limits=ylim1)
   xlim<-c(min(x1),max(x1))
   if (!is.null(xtick)) {
@@ -262,22 +264,40 @@ doublePlot<-function(x1,xlb,y1,ylb1,y2=NULL,ylb2=NULL,y3=NULL,ylb3=NULL,xtick=NU
     }
     g1<-g1+geom_point(data=pts,aes(x=x1,y=y1),fill=cols[j],size=4,shape=21)
   }
+  
   if (nrow(y1)>1) {
-    if (xlog) {
-      xp<-10^(log10(xlim[1])+diff(log10(xlim))*0.01)
-      xp1<-10^(log10(xlim[1])+diff(log10(xlim))*0.05)
+    if (legendX=="left") {
+      if (xlog) {
+        xp<-10^(log10(xlim[1])+diff(log10(xlim))*0.01)
+        xp1<-10^(log10(xlim[1])+diff(log10(xlim))*0.05)
+      } else {
+        xp<-xlim[1]+diff(xlim)*0.01
+        xp1<-xlim[1]+diff(xlim)*0.05
+      }
     } else {
-      xp<-xlim[1]+diff(xlim)*0.01
-      xp1<-xlim[1]+diff(xlim)*0.05
+      if (xlog) {
+        xp<-10^(log10(xlim[2])-diff(log10(xlim))*0.01)
+        xp1<-10^(log10(xlim[2])-diff(log10(xlim))*0.05)
+      } else {
+        xp<-xlim[2]-diff(xlim)*0.01
+        xp1<-xlim[2]-diff(xlim)*0.05
+      }
     }
-    legend<-data.frame(x=xp,y=ylim1[1]+diff(ylim1)*0.2)
+    if (legendY=="bottom") {
+      yp<-ylim1[1]+diff(ylim1)*0.2
+      yp1<-ylim1[1]+diff(ylim1)*0.1
+    } else {
+      yp<-ylim1[2]-diff(ylim1)*0.2
+      yp1<-ylim1[2]-diff(ylim1)*0.1
+    }
+    legend<-data.frame(x=xp,y=yp)
     g1<-g1+geom_point(data=legend,aes(x=x,y=y),fill=cols[1],size=4,shape=21)
-    legendText<-data.frame(x=xp1,y=ylim1[1]+diff(ylim1)*0.2,label=legendLabels[1])
+    legendText<-data.frame(x=xp1,y=yp,label=legendLabels[1])
     g1<-g1+geom_text(data=legendText,aes(x=x,y=y,label=label),color="white",hjust=-1)
     
-    legend<-data.frame(x=xp,y=ylim1[1]+diff(ylim1)*0.1)
+    legend<-data.frame(x=xp,y=yp1)
     g1<-g1+geom_point(data=legend,aes(x=x,y=y),fill=cols[2],size=4,shape=21)
-    legendText<-data.frame(x=xp1,y=ylim1[1]+diff(ylim1)*0.1,label=legendLabels[2])
+    legendText<-data.frame(x=xp1,y=yp1,label=legendLabels[2])
     g1<-g1+geom_text(data=legendText,aes(x=x,y=y,label=label),color="white",hjust=-1)
   }
   g1<-g1+xlab(xlb)+ylab(ylb1)
@@ -325,13 +345,6 @@ doublePlot<-function(x1,xlb,y1,ylb1,y2=NULL,ylb2=NULL,y3=NULL,ylb3=NULL,xtick=NU
       g2<-g2+geom_point(data=pts,aes(x=x2,y=y2),fill=cols[j],size=4,shape=21)
     }
     if (nrow(y2)>1) {
-      if (xlog) {
-        xp<-10^(log10(xlim[1])+diff(log10(xlim))*0.01)
-        xp1<-10^(log10(xlim[1])+diff(log10(xlim))*0.05)
-      } else {
-        xp<-xlim[1]+diff(xlim)*0.01
-        xp1<-xlim[1]+diff(xlim)*0.05
-      }
       legend<-data.frame(x=xp,y=ylim2[1]+diff(ylim2)*0.2)
       g2<-g2+geom_point(data=legend,aes(x=x,y=y),fill=cols[1],size=4,shape=21)
       legendText<-data.frame(x=xp1,y=ylim2[1]+diff(ylim2)*0.2,label=legendLabels[1])

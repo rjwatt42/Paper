@@ -434,8 +434,12 @@ tnRes<-c()
 tkRes<-c()
 rnRes<-c()
 rkRes<-c()
+nmean<-c()
+psum<-c()
 for (i in 1:(length(journals))) {
   usej<-(my_data$journal==journals[i]) 
+  nmean<-c(nmean,median(my_data$n[usej]))
+  psum<-c(psum,sum(usej))
   
     uses<-(my_data$Statistic=="t") 
     use<-usej & uses
@@ -456,6 +460,7 @@ for (i in 1:(length(journals))) {
     rkRes<-cbind(rkRes,an$best$Kmax)
 }
 
+dispOrder<-order(nmean)
 doublePlot(journals[dispOrder],"",rbind(tkRes[,dispOrder],rkRes[,dispOrder]),Llabel,rbind(tnRes[,dispOrder],rnRes[,dispOrder]),Plabel,legendLabels=c("t","r"))
 
 #######################################
