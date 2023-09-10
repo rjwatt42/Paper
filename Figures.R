@@ -452,12 +452,12 @@ propRT<-c()
 for (journal in journals) {
   ts<-my_data$journal==journal & my_data$Statistic=="t"
   rs<-my_data$journal==journal & my_data$Statistic=="r"
-  propRT<-c(propRT,sum(ts)/sum(my_data$journal==journal))
+  propRT<-c(propRT,sum(ts)/(sum(ts)+sum(rs)))
 }
 
 df<-data.frame(x=1:length(dispOrder),y=propRT[dispOrder])
 g<-ggplot()+geom_point(data=df,aes(x=x,y=y),color='yellow',size=4)
-g<-g+scale_y_continuous(limits=c(0,0.6))
+g<-g+scale_y_continuous(limits=c(0.5,1))
 g<-g+scale_x_continuous(breaks=1:length(dispOrder),labels=journals[dispOrder])
 g<-g+xlab("journal")+ylab("t/r")
 g + plotTheme
@@ -491,4 +491,92 @@ g<-g+scale_y_continuous(limits=c(0,max(nmean,na.rm=TRUE)+5))
 g<-g+xlab("year")+ylab("median(n)")
 g + plotTheme
 
+#########################################
+nbins<-101
 
+use_r<-my_data$r_s<=0.95
+use_r_sim<-my_data_sim$r_s<=0.95
+
+use_n<-my_data$n<=800 & my_data$n>=10 & log10(my_data$p)> -6
+use_n_sim<-my_data_sim$n<=800 & my_data_sim$n>=10 & log10(my_data_sim$p)> -6
+
+h2<-hist(log10(my_data_sim$p[use_n_sim&use_r_sim]),breaks=seq(-6,0,length.out=nbins))
+h1<-hist(log10(my_data$p[use_n&use_r]),breaks=seq(-6,0,length.out=nbins))
+
+df<-data.frame(x=h1$mids,y1=h1$density,y2=h2$density)
+g<-ggplot()
+g<-g+geom_point(data=df,aes(x=x,y=y1-y2),color='yellow',size=1)
+g<-g+geom_line(data=df,aes(x=x,y=y1-y2))
+g<-g+xlab("log10(p)")+ylab("real-sim")
+g + plotTheme
+
+
+#########################################
+# rs x n density of real vs simulated 
+
+nbins<-c(201,51)
+k=0.3195403
+pNull=0.725488
+
+use_r<-my_data$r_s<=0.95
+use_r_sim<-my_data_sim$r_s<=0.95
+
+use_n<-my_data$n<=800 & my_data$n>=10
+use_n_sim<-my_data_sim$n<=800 & my_data_sim$n>=10
+
+h1<-hist2d(my_data$z_s[use_n&use_r],log10(my_data$n[use_n&use_r]),nbins=nbins,show=FALSE)
+
+  my_data_sim$z_s<-atanh(my_data_sim$r_s)
+  h2<-hist2d(my_data_sim$z_s[use_n_sim&use_r_sim],log10(my_data_sim$n[use_n_sim&use_r_sim]),nbins=nbins,show=FALSE)
+  h2<-h2$counts
+  for (i in 1:length(h1$y)) {
+    h2[,i]<-h2[,i]/sum(h2[,i])*sum(h1$counts[,i])
+  }
+  
+  h3<-c()
+  for (i in 2:length(h1$y.breaks)) {
+    expected<-0
+    for (n in ceil(10^h1$y.breaks[i-1]:floor(10^h1$y.breaks[i]))) {
+      zcrit<-qnorm(1-alpha/2,0,1/sqrt(n-3))
+      dens1<-1-ExpSamplingCDF(h1$x.breaks,k,1/sqrt(n-3))
+      dens0<-pnorm(h1$x.breaks,0,1/sqrt(n-3))
+      dens<-dens1*(1-pNull)+dens0*pNull
+      dens<-diff(dens)
+      dens[h1$x<=zcrit]<-0
+      expected<-expected+dens
+    }
+    expected<-expected/sum(expected)*sum(h1$counts[,i-1])
+    h3<-cbind(h3,expected)
+  }
+
+
+# h2<-hist2d(my_data_sim$p[use_n_sim&use_r_sim],log10(my_data_sim$n[use_n_sim&use_r_sim]),nbins=nbins)
+# h1<-hist2d(my_data$p[use_n&use_r],log10(my_data$n[use_n&use_r]),nbins=nbins)
+
+xy<-meshgrid(h1$y,h1$x)
+df<-data.frame(y=as.vector(xy$X),x=as.vector(xy$Y),
+               f=as.vector(h1$counts/sum(h1$counts)-h3/sum(h1$counts))*1000)
+
+g<-ggplot(df) + geom_raster(aes(x=x,y=y,fill=(abs(f)^0.5)*sign(f)))
+g<-ggplot(df) + geom_raster(aes(x=x,y=y,fill=f))
+
+ns<-h1$y
+zs<-qnorm(1-alpha/2,0,1/sqrt(10^ns-3))
+ds<-data.frame(x=zs,y=ns)
+g<-g+geom_line(data=ds,aes(x=x,y=y),colour="white")
+dst<-data.frame(x=max(zs),y=min(ns))
+g<-g+geom_text(data=dst,aes(x=x,y=y,label="p=0.05"),hjust=1.2,colour="white")
+
+zs<-qnorm(1-alpha/2/100,0,1/sqrt(10^ns-3))
+ds<-data.frame(x=zs,y=ns)
+g<-g+geom_line(data=ds,aes(x=x,y=y),colour="white")
+dst<-data.frame(x=max(zs),y=min(ns))
+g<-g+geom_text(data=dst,aes(x=x,y=y,label="p=0.0005"),hjust=1.2,colour="white")
+
+
+intense<-scales::trans_new("intense", transform=function(x){abs(x)^0.5*sign(x)},inverse=function(x){abs(x)^(1/0.5)*sign(x)})
+g<-g+ylab(bquote(bold(log[10](n))))+xlab(bquote(bold(z[s])))
+g<-g+scale_fill_gradient2(high = "green", mid="#666666", low = "red",name="(actual-expected)/1000",trans=intense)
+g + plotTheme
+
+#########################################

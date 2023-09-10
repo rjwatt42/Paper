@@ -43,7 +43,7 @@ waste<-my_data$df1<1
 my_data<-my_data[!waste,]
 print(paste("df1 not available",before-nrow(my_data),"=",nrow(my_data)))
 
-# remove any with df1>2
+# remove any with df1>1
 # these have a different sampling error distribution
 before<-nrow(my_data)
 waste<-my_data$df1>1
@@ -77,7 +77,7 @@ use<-my_data$Statistic=="Chi2" & my_data$df1==1
 r_s[use]<-sqrt(my_data$Value[use]/(my_data$df2[use]))
 my_data$df2[use]<-my_data$df2[use]+my_data$df1[use]+1
 
-my_data$r_s<-r_s
+my_data$r_s<-abs(r_s)
 
 # remove any r values that are not valid
 before<-nrow(my_data)

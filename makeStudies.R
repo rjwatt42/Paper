@@ -1,17 +1,20 @@
 simData<-function(an=NULL) {
   
   if (is.null(an)) {
-    metaData<-list(result=list(rIV=my_data$r_s,nval=my_data$n,df1=my_data$df1))
-    metaAnal<-list(meta_fixedAnal="random",meta_pdf="Exp",meta_psigAnal=TRUE,meta_nullAnal=TRUE,append=FALSE)
-    an<-runMetaAnalysis(metaAnal,metaData)
+    # metaData<-list(result=list(rIV=my_data$r_s,nval=my_data$n,df1=my_data$df1))
+    # metaAnal<-list(meta_fixedAnal="random",meta_pdf="Exp",meta_psigAnal=TRUE,meta_nullAnal=TRUE,append=FALSE)
+    # an<-runMetaAnalysis(metaAnal,metaData)
+    model="Exp"
+    k=0.3195403
+    pNull=0.725488
+  } else {
+    model="Exp"
+    k=an$exp$Kmax
+    pNull=an$exp$Nullmax
   }
   
   nStudies=length(my_data$n)
   ns<-NA
-  model="Exp"
-  k=an$exp$Kmax
-  pNull=an$exp$Nullmax
-  actualS<-an$exp$Smax
   sigOnly=TRUE
   
   my_sim_data<-makeStudies(nStudies,ns,model,k,NA,pNull,sigOnly)

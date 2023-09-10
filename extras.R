@@ -17,7 +17,7 @@ for (si in 1:length(shapes)) {
   showAnalysis(an,paste0("GenExp(",format(shapes[si],digits=2),")"))
 }
 
-doublePlot(log2(shapes),"log2(a)",resultK,Llabel,resultNull,Plabel,resultS,Slabel)
+doublePlot(log2(shapes),"log2(a)",resultK,NULL,Llabel,resultNull,NULL,Plabel,resultS,Slabel)
 
 #########################################
 # number of parameters
@@ -41,7 +41,7 @@ for (i in 1:length(parameters)) {
   })
 }
 
-doublePlot(parameters,"parameters",kRes,Llabel,nRes,Plabel,xtick=parameters)
+doublePlot(parameters,"parameters",kRes,NULL,Llabel,nRes,Plabel,xtick=parameters)
 
 #########################################
 # look at observed vs expected histograms

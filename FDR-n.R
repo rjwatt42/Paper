@@ -72,7 +72,7 @@ for (i in 2:length(nmaxs)) {
 
 pts<-data.frame(n=nn,w=w,fdr=fdr,ws=ws,fdrs=fdrs)
 
-doublePlot(nn,'n',rbind(w,ws),'w',y2=rbind(fdr,fdrs),ylb2='fdr',
+doublePlot(nn,'n',rbind(w,ws),NULL,'w',y2=rbind(fdr,fdrs),NULL,ylb2='fdr',
            xlog=TRUE,
            legendLabels=c("real","sim"),legendX='right')
   

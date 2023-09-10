@@ -48,25 +48,26 @@ getMaxLikelihood<-function(zs,ns,df1,dist,metaAnalysis) {
   Smax<- -result$value
   
   # cross sections
-  nullvals<-seq(0,1,length.out=65)
-  kvals<-seq(0.02,1,length.out=65)
+  if (Nullmax==0) {
+    nullCIlow<-0
+  } else {
+    nullvals<-seq(0,Nullmax,length.out=65)
+    SnullX<-getLogLikelihood(zs,ns,df1,dist,Kmax,nullvals,metaAnalysis$meta_psigAnal)
+    nullCIlow<-approx(SnullX,nullvals,Smax-log(100))$y
+    if (is.na(nullCIlow)) nullCIlow<-0
+  }
+  nullvals<-seq(Nullmax,1,length.out=65)
   SnullX<-getLogLikelihood(zs,ns,df1,dist,Kmax,nullvals,metaAnalysis$meta_psigAnal)
-  SkX<-getLogLikelihood(zs,ns,df1,dist,kvals,Nullmax,metaAnalysis$meta_psigAnal)
+    nullCIhigh<-approx(SnullX,nullvals,Smax-log(100))$y
+  nullCI<-c(nullCIlow,nullCIhigh)  
 
-  nullCI<-0
-  kCI<-0
-  # use<-nullvals<Nullmax
-  # if (Nullmax==0) {
-  #   nullCI<-c(0,
-  #             approx(SnullX[!use],nullvals[!use],Smax-log(100))$y)
-  # } else {
-  #   nullCI<-c(approx(SnullX[use],nullvals[use],Smax-log(100))$y,
-  #             approx(SnullX[!use],nullvals[!use],Smax-log(100))$y)
-  # }
-  # 
-  # use<-kvals<Kmax
-  # kCI<-c(approx(SkX[use],nullvals[use],Smax-log(100))$y,
-  #           approx(SkX[!use],kvals[!use],Smax-log(100))$y)
+  kvals<-seq(0.02,Kmax,length.out=11)
+  SkX<-getLogLikelihood(zs,ns,df1,dist,kvals,Nullmax,metaAnalysis$meta_psigAnal)
+    kCIlow<-approx(SkX,kvals,Smax-log(100))$y
+  kvals<-seq(Kmax,1,length.out=11)
+  SkX<-getLogLikelihood(zs,ns,df1,dist,kvals,Nullmax,metaAnalysis$meta_psigAnal)
+    kCIhigh<-approx(SkX,kvals,Smax-log(100))$y
+  kCI<-c(kCIlow,kCIhigh)  
   
   return(list(Kmax=Kmax,Nullmax=Nullmax,Smax=Smax,kCI=kCI,nullCI=nullCI,
               SX=list(kvals=kvals,SkX=as.vector(SkX),nullvals=nullvals,SnullX=as.vector(SnullX))))
@@ -102,9 +103,14 @@ runMetaAnalysis<-function(metaAnalysis,metaResult){
       )
     }
 
-  use<-which.max(c(single$Smax,gauss$Smax,exp$Smax,gamma$Smax,genexp$Smax))
-  bestDist<-c("Single","Gauss","Exp","Gamma","GenExp")[use]
-  best<-cbind(single,gauss,exp,gamma,genexp)[,use]
+    if (length(metaAnalysis$meta_pdf)>1) {
+      use<-which.max(c(single$Smax,gauss$Smax,exp$Smax,gamma$Smax,genexp$Smax))
+      bestDist<-c("Single","Gauss","Exp","Gamma","GenExp")[use]
+      best<-cbind(single,gauss,exp,gamma,genexp)[,use]
+    } else {
+      bestDist<-metaAnalysis$meta_pdf[1]
+      best<-d
+    }
 
   metaResult<-list(single=single,
                    gauss=gauss,
