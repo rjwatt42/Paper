@@ -514,7 +514,7 @@ g + plotTheme
 #########################################
 # rs x n density of real vs simulated 
 
-nbins<-c(201,51)
+nbins<-c(51,51)
 k=0.3195403
 pNull=0.725488
 
