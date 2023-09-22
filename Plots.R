@@ -240,10 +240,10 @@ singlePlot<-function(x1,xlb,y1,y1e,ylb1,xtick=NULL,xlog=FALSE,legendLabels=c("re
     ylim1<-c(0,1)
   }
   if (ylb1=="w") {
-    ylim1<-c(0,1)
+    ylim1<-c(0,max(0.4,max(y1)))
   }
   if (ylb1=="FDR") {
-    ylim1<-c(0,1)
+    ylim1<-c(0,max(0.6,max(y1)))
   }
   
   g1<-ggplot()+scale_y_continuous(limits=ylim1)
@@ -272,6 +272,9 @@ singlePlot<-function(x1,xlb,y1,y1e,ylb1,xtick=NULL,xlog=FALSE,legendLabels=c("re
       g1<-g1+scale_x_continuous(limits=c(min(x1),max(x1))+c(-1,1)*(max(x1)-min(x1))/4)
     }
   }
+  
+  if (!is.matrix(y1)) {y1<-rbind(y1)}
+  if (!is.matrix(y1e)) {y1e<-rbind(y1e)}
   cols<-c("yellow","red")
   for (j in 1:nrow(y1)) {
     pts<-data.frame(x1=x1use,y1=y1[j,])
@@ -287,7 +290,7 @@ singlePlot<-function(x1,xlb,y1,y1e,ylb1,xtick=NULL,xlog=FALSE,legendLabels=c("re
       }
     }
     g1<-g1+geom_point(data=pts,aes(x=x1use,y=y1),fill=cols[j],size=4,shape=21)
-    if (!is.null(y1e)){
+    if (!is.null(y1e) && nrow(y1e)>=(j-1)*2+1){
       ptse<-data.frame(x1=x1use,y2=y1e[(j-1)*2+1,],y3=y1e[(j-1)*2+2,])
       g1<-g1+geom_errorbar(data=ptse,aes(x=x1,ymin=y2,ymax=y3),width=ewidth,color=cols[j])
     }
@@ -333,7 +336,7 @@ singlePlot<-function(x1,xlb,y1,y1e,ylb1,xtick=NULL,xlog=FALSE,legendLabels=c("re
   return(g1)
   }
 
-doublePlot<-function(x1,xlb,y1,y1e=NULL,ylb1,y2=NULL,y2e=NULL,ylb2=NULL,y3=NULL,y3e=NULL,ylb3=NULL,xtick=NULL,xlog=FALSE,legendLabels=c("real","sim"),legendX="left",legendY="bottom") {
+doublePlot<-function(x1,xlb,y1,y1e=NULL,ylb1,y2=NULL,y2e=NULL,ylb2=NULL,y3=NULL,y3e=NULL,ylb3=NULL,xtick=NULL,xlog=FALSE,legendLabels=c("actual","simulated"),legendX="left",legendY="bottom") {
   
   g<-ggplot()+plotBlankTheme+theme(plot.margin=margin(0,-0.2,0,-1,"cm"))
   g<-g+scale_x_continuous(limits = c(0,10),labels=NULL,breaks=NULL)+scale_y_continuous(limits = c(0,10),labels=NULL,breaks=NULL)

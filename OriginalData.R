@@ -50,7 +50,7 @@ waste<-my_data$df1>1
 my_data<-my_data[!waste,]
 print(paste("df1>1",before-nrow(my_data),"=",nrow(my_data)))
 
-# remove any with ch2>df2
+# remove any with chi2>df2
 # these have an unknown effect size
 before<-nrow(my_data)
 waste<-(my_data$Statistic=="Chi2") & (my_data$Value>=my_data$df2)
@@ -94,9 +94,14 @@ my_data$n<-my_data$df2+my_data$df1+1
 my_data$p<-r2p(my_data$r_s,my_data$n,my_data$df1)
 
 before<-nrow(my_data)
-waste<-my_data$n<=3
+waste<-my_data$n<nMin
 my_data<-my_data[!waste,]
-print(paste("n<4",before-nrow(my_data),"=",nrow(my_data)))
+print(paste0("n<",nMin," ",before-nrow(my_data)," = ",nrow(my_data)))
+
+before<-nrow(my_data)
+waste<-my_data$n>nMax
+my_data<-my_data[!waste,]
+print(paste0("n>",nMax," ",before-nrow(my_data)," = ",nrow(my_data)))
 
 # separate out the 1-tails that have p between 0.05 and 0.1 (2-tailed p)
 keep<-(my_data$OneTail | my_data$OneTailedInTxt) & (my_data$p>=0.05 & my_data$p<0.1)

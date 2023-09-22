@@ -1,6 +1,8 @@
 #########################################
 source("SetUp.R")
 alpha<-0.05
+nMax<-300
+nMin<-5
 
 #########################################
 source("OriginalData.R")
@@ -29,18 +31,18 @@ for (i in 1:length(papers)) {
 #########################################
 # 2D histogram of zs vs n
 
-df<-data.frame(x=abs(atanh(my_data$r_s)),y=my_data$n)
-use<-my_data$n<=250 & my_data$z_s<3
+df<-data.frame(x=my_data$z_s,y=my_data$n)
+use<-my_data$n<=nMax & my_data$z_s<3
 df<-df[use,]
 
 g<-ggplot(df) + geom_bin_2d(aes(x=x,y=y),bins=51,show.legend=FALSE,drop=FALSE) 
 
-ns<-seq(5,250)
-zs<-qnorm(1-alpha,0,1/sqrt(ns-3))
+ns<-seq(5,nMax)
+zs<-qnorm(1-alpha/2,0,1/sqrt(ns-3))
 ds<-data.frame(x=zs,y=ns)
 g<-g+geom_line(data=ds,aes(x=x,y=y),colour="red")
 
-zs<-qnorm(1-alpha/100,0,1/sqrt(ns-3))
+zs<-qnorm(1-alpha/200,0,1/sqrt(ns-3))
 ds<-data.frame(x=zs,y=ns)
 g<-g+geom_line(data=ds,aes(x=x,y=y),colour="orange")
 
@@ -62,9 +64,7 @@ g
 ##########################################
 # show distribution of n
 
-maxn<-250
-
-use<-my_data$n<=maxn & my_data$n>=10
+use<-my_data$n<=nMax & my_data$n>=nMin
 
 g<-ggplot()
 df<-data.frame(d=my_data$n[use])
@@ -76,9 +76,7 @@ g
 ##########################################
 # show distribution of zs
 
-maxn<-250
-
-use<-abs(my_data$z_s)<=1.5
+use<-my_data$z_s<=1.5
 
 g<-ggplot()
 df<-data.frame(d=abs(my_data$z_s[use]))
@@ -88,7 +86,7 @@ g
 
 
 ##########################################
-# all the results
+# analysis comparing all models
 
 metaAnal<-list(meta_pdf="All",meta_psigAnal=TRUE,meta_nullAnal=TRUE)
 metaData<-list(result=list(rIV=my_data$r_s,nval=my_data$n,df1=my_data$df1))
@@ -184,9 +182,9 @@ doublePlot((studies[1:10]+studies[2:11])/2,"studies",
 # split by n
 # essentially a check for power analysis
 
-nmaxs<-round(10^seq(log10(20),log10(500),length.out=10))
+nmaxs<-round(10^seq(log10(20),log10(nMax),length.out=11))
 
-my_data_sim<-simData(an)
+my_data_sim<-simData(anMain)
 
 metaAnal<-list(meta_pdf="Exp",meta_psigAnal=TRUE,meta_nullAnal=TRUE)
 
@@ -197,60 +195,80 @@ kCI<-c()
 sRes<-c()
 
 nRes_sim<-c()
+nCI_sim<-c()
 kRes_sim<-c()
+kCI_sim<-c()
 sRes_sim<-c()
 
 wRes<-c()
 fdrRes<-c()
-  for (i in 2:length(nmaxs)) {
-    if (i==1) {
-      use<-(my_data$n<=nmaxs[i])
-    } else {
-      use<-(my_data$n>nmaxs[i-1] & my_data$n<=nmaxs[i])
-    }
-  nvals<-my_data$n[use]
-  
-    metaData<-list(result=list(rIV=my_data$r_s[use],nval=my_data$n[use],df1=my_data$df1[use]))
-    an<-runMetaAnalysis(metaAnal,metaData)
-    nRes<-cbind(nRes,an$best$Nullmax)
-    kRes<-cbind(kRes,an$best$Kmax)
-    nCI<-cbind(nCI,matrix(an$best$nullCI,ncol=1))
-    kCI<-cbind(kCI,matrix(an$best$kCI,ncol=1))
-    sRes<-cbind(sRes,an$best$Smax)
-    showAnalysis(an,paste0("n=",round(nmaxs[i])," "))
 
-    wAll<-0
-    wF<-0
-    for (ni in min(nvals):max(nvals)) {
-      weight<-sum(nvals==ni)/length(nvals)
-      zcrit<-qnorm(1-alpha/2,0,1/sqrt(ni-3))
-      w1<-ExpSamplingCDF(zcrit,an$best$Kmax,1/sqrt(ni-3))
-      w0<-alpha
-      w<-w0*an$best$Nullmax + w1*(1-an$best$Nullmax)
-      wAll<-wAll+w*weight
-      wF<-wF+w0/w*weight
-    }
-      
-    wRes<-cbind(wRes,wAll) 
-    fdrRes<-cbind(fdrRes,wF) 
-    
-    if (i==1) {
-      use<-(my_data_sim$n<=nmaxs[i])
-    } else {
-      use<-(my_data_sim$n>nmaxs[i-1] & my_data_sim$n<=nmaxs[i])
-    }
-    metaData<-list(result=list(rIV=my_data_sim$r_s[use],nval=my_data_sim$n[use],df1=my_data_sim$df1[use]))
-    an<-runMetaAnalysis(metaAnal,metaData)
-    nRes_sim<-cbind(nRes_sim,an$best$Nullmax)
-    kRes_sim<-cbind(kRes_sim,an$best$Kmax)
-    sRes_sim<-cbind(sRes_sim,an$best$Smax)
-    showAnalysis(an,paste0("sim:n=",round(nmaxs[i])," "))
+wRes_sim<-c()
+fdrRes_sim<-c()
+
+for (i in 2:length(nmaxs)) {
+  useN<-(my_data$n>nmaxs[i-1] & my_data$n<=nmaxs[i])
+  nvals<-my_data$n[useN]
+  
+  metaData<-list(result=list(rIV=my_data$r_s[useN],nval=my_data$n[useN],df1=my_data$df1[useN]))
+  an<-runMetaAnalysis(metaAnal,metaData)
+  nRes<-cbind(nRes,an$best$Nullmax)
+  kRes<-cbind(kRes,an$best$Kmax)
+  nCI<-cbind(nCI,matrix(an$best$nullCI,ncol=1))
+  kCI<-cbind(kCI,matrix(an$best$kCI,ncol=1))
+  sRes<-cbind(sRes,an$best$Smax)
+  showAnalysis(an,paste0("n=",round(nmaxs[i])," "))
+  
+  wAll<-0
+  wF<-0
+  for (ni in min(nvals):max(nvals)) {
+    weight<-sum(nvals==ni)/length(nvals)
+    zcrit<-qnorm(1-alpha/2,0,1/sqrt(ni-3))
+    w1<-ExpSamplingCDF(zcrit,an$best$Kmax,1/sqrt(ni-3))
+    w0<-alpha
+    w<-w0*an$best$Nullmax + w1*(1-an$best$Nullmax)
+    wAll<-wAll+w*weight
+    wF<-wF+w0/w*weight
   }
+  wRes<-cbind(wRes,wAll) 
+  fdrRes<-cbind(fdrRes,wF) 
+  
+  # simulated data
+  use<-(my_data_sim$n>nmaxs[i-1] & my_data_sim$n<=nmaxs[i])
+  
+  metaData<-list(result=list(rIV=my_data_sim$r_s[use],nval=my_data_sim$n[use],df1=my_data_sim$df1[use]))
+  an<-runMetaAnalysis(metaAnal,metaData)
+  nRes_sim<-cbind(nRes_sim,an$best$Nullmax)
+  kRes_sim<-cbind(kRes_sim,an$best$Kmax)
+  nCI_sim<-cbind(nCI_sim,matrix(an$best$nullCI,ncol=1))
+  kCI_sim<-cbind(kCI_sim,matrix(an$best$kCI,ncol=1))
+  sRes_sim<-cbind(sRes_sim,an$best$Smax)
+  showAnalysis(an,paste0("sim:n=",round(nmaxs[i])," "))
+  
+  wAll<-0
+  wF<-0
+  for (ni in min(nvals):max(nvals)) {
+    weight<-sum(nvals==ni)/length(nvals)
+    zcrit<-qnorm(1-alpha/2,0,1/sqrt(ni-3))
+    w1<-ExpSamplingCDF(zcrit,an$best$Kmax,1/sqrt(ni-3))
+    w0<-alpha
+    w<-w0*an$best$Nullmax + w1*(1-an$best$Nullmax)
+    wAll<-wAll+w*weight
+    wF<-wF+w0/w*weight
+  }
+  wRes_sim<-cbind(wRes_sim,wAll) 
+  fdrRes_sim<-cbind(fdrRes_sim,wF)
+  
+}
+
+# save these results for later
+nResN<-nRes
+kResN<-kRes
 
 
 # doublePlot(nmaxs[2:length(nmaxs)],expression(n[max]),rbind(kRes,kRes_sim),Llabel,rbind(nRes,nRes_sim),Plabel,xlog=TRUE)
-doublePlot(nmaxs[2:length(nmaxs)],expression(n[max]),rbind(kRes,kRes_sim),kCI,Llabel,rbind(nRes,nRes_sim),nCI,Plabel,xlog=TRUE)
-doublePlot(nmaxs[2:length(nmaxs)],expression(n[max]),wRes,NULL,"w",fdrRes,NULL,"FDR",xlog=TRUE)
+doublePlot(nmaxs[2:length(nmaxs)],expression(n[max]),rbind(kRes,kRes_sim),rbind(kCI,kCI_sim),Llabel,rbind(nRes,nRes_sim),rbind(nCI,nCI_sim),Plabel,xlog=TRUE)
+doublePlot(nmaxs[2:length(nmaxs)],expression(n[max]),rbind(wRes,wRes_sim),NULL,"w",rbind(fdrRes,fdrRes_sim),NULL,"FDR",xlog=TRUE)
 
 #########################################
 # split by year
@@ -263,9 +281,13 @@ nCI<-c()
 kRes<-c()
 kCI<-c()
 sRes<-c()
+
+nRes_expect<-c()
+kRes_expect<-c()
+
 for (i in 1:(length(years)-1)) {
-  use<-(my_data$year>=years[i]) & (my_data$year<years[i+1])
-  metaData<-list(result=list(rIV=my_data$r_s[use],nval=my_data$n[use],df1=my_data$df1[use]))
+  useY<-(my_data$year>=years[i]) & (my_data$year<years[i+1]) & (my_data$n<=300)
+  metaData<-list(result=list(rIV=my_data$r_s[useY],nval=my_data$n[useY],df1=my_data$df1[useY]))
   an<-runMetaAnalysis(metaAnal,metaData)
   nRes<-cbind(nRes,an$best$Nullmax)
   kRes<-cbind(kRes,an$best$Kmax)
@@ -273,8 +295,25 @@ for (i in 1:(length(years)-1)) {
   kCI<-cbind(kCI,matrix(an$best$kCI,ncol=1))
   sRes<-cbind(sRes,an$best$Smax)
   showAnalysis(an,paste0("year=",years[i]))
+
+
+  ne<-0
+  ke<-0
+  nc<-0
+  for (ni in 2:length(nmaxs)) {
+    useN<-my_data$n>nmaxs[ni-1] & my_data$n<=nmaxs[ni]
+    count<-sum(useN & useY)
+    ne<-ne+count*nResN[ni-1]
+    ke<-ke+count*kResN[ni-1]
+    nc<-nc+count
+  }
+  nRes_expect<-c(nRes_expect,ne/nc)
+  kRes_expect<-c(kRes_expect,ke/nc)
 }
-doublePlot(years,"year",kRes,kCI,Llabel,nRes,nCI,Plabel)
+# doublePlot(years[1:(length(years)-1)],"year",rbind(kRes),kCI,Llabel,
+#            rbind(nRes),nCI,Plabel)
+doublePlot(years[1:(length(years)-1)],"year",rbind(kRes,kRes_expect),rbind(kCI),Llabel,
+           rbind(nRes,nRes_expect),rbind(nCI),Plabel,legendLabels=c("actual","expected"))
 
 #########################################
 # split by journal
@@ -290,17 +329,32 @@ sRes<-c()
 nmean<-c()
 wRes<-c()
 fdrRes<-c()
+
+nRes_exp<-c()
+kRes_exp<-c()
+
 for (i in 1:(length(journals))) {
-  use<-(my_data$journal==journals[i]) 
-  metaData<-list(result=list(rIV=my_data$r_s[use],nval=my_data$n[use],df1=my_data$df1[use]))
+  useJ<-(my_data$journal==journals[i]) 
+  metaData<-list(result=list(rIV=my_data$r_s[useJ],nval=my_data$n[useJ],df1=my_data$df1[useJ]))
   an<-runMetaAnalysis(metaAnal,metaData)
   nRes<-cbind(nRes,an$best$Nullmax)
   kRes<-cbind(kRes,an$best$Kmax)
   nCI<-cbind(nCI,matrix(an$best$nullCI,ncol=1))
   kCI<-cbind(kCI,matrix(an$best$kCI,ncol=1))
   sRes<-cbind(sRes,an$best$Smax)
-  nmean<-c(nmean,median(my_data$n[use]))
+  nmean<-c(nmean,median(my_data$n[useJ]))
   showAnalysis(an,paste0(journals[i],"(n=",nmean[i],")"),"Best")
+  
+  ne<-0
+  ke<-0
+  for (ni in 2:length(nmaxs)) {
+    useN<-my_data$n>nmaxs[ni-1] & my_data$n<=nmaxs[ni]
+    count<-sum(useN & useJ)
+    ne<-ne+count*nResN[ni-1]
+    ke<-ke+count*kResN[ni-1]
+  }
+  nRes_exp<-c(nRes_exp,ne/sum(useJ))
+  kRes_exp<-c(kRes_exp,ke/sum(useJ))
   
   # probability of significant given it is a non-null
   w<-1-ExpSamplingCDF(qnorm(1-alpha/2)/sqrt(my_data$n[use]-3),an$best$Kmax,1/sqrt(my_data$n[use]-3))
@@ -313,9 +367,9 @@ for (i in 1:(length(journals))) {
   fdrRes<-c(fdrRes,fdr)
 }
 
-use<-order(nmean)
-doublePlot(journals[use],"",kRes[,use],kCI[,use],Llabel,nRes[,use],nCI[,use],Plabel)
-doublePlot(journals[use],"",wRes[,use],NULL,"w",fdrRes[,use],NULL,"FDR")
+useOrder<-order(nmean)
+doublePlot(journals[useOrder],"",rbind(kRes,kRes_exp)[,useOrder],NULL,Llabel,rbind(nRes,nRes_exp)[,useOrder],NULL,Plabel)
+doublePlot(journals[useOrder],"",wRes[useOrder],NULL,"w",fdrRes[useOrder],NULL,"FDR")
 
 #########################################
 # split by impact factor
@@ -371,7 +425,7 @@ doublePlot(statistics,"Test",kRes,kCI,Llabel,nRes,nCI,Plabel)
 #########################################
 # split by 1-tail vs 2
 # 
-cases<-c("0","1","2")
+cases<-c("1 @ 0.1","1 @ 0.05","2 @ 0.05")
 metaAnal<-list(meta_pdf="Exp",meta_psigAnal=TRUE,meta_nullAnal=TRUE)
 
 tails1<-my_data$OneTail | my_data$OneTailedInTxt
@@ -414,13 +468,16 @@ doublePlot(cases,"Tails",kRes,kCI,Llabel,nRes,nCI,Plabel)
 alpha<-0.05
 alphas<-0.05*10^seq(-2,0,length.out=9)
 
-my_data_sim<-simData()
+my_data_sim<-simData(anMain)
 
 nRes<-c()
 kRes<-c()
 nResCI<-c()
 kResCI<-c()
 sRes<-c()
+
+nRes_expect<-c()
+kRes_expect<-c()
 
 nRes_sim<-c()
 kRes_sim<-c()
@@ -441,8 +498,8 @@ metaAnal<-list(meta_pdf="Exp",meta_psigAnal=TRUE,meta_nullAnal=TRUE)
 for (i in 1:length(alphas)) {
   alpha<-alphas[i]
   
-  use<-my_data$p<alpha & use_n
-  metaData<-list(result=list(rIV=my_data$r_s[use],nval=my_data$n[use],df1=my_data$df1[use]))
+  useP<-my_data$p<alpha & use_n
+  metaData<-list(result=list(rIV=my_data$r_s[useP],nval=my_data$n[useP],df1=my_data$df1[useP]))
   an<-runMetaAnalysis(metaAnal,metaData)
   nRes<-cbind(nRes,an$best$Nullmax)
   kRes<-cbind(kRes,an$best$Kmax)
@@ -451,8 +508,19 @@ for (i in 1:length(alphas)) {
   sRes<-cbind(sRes,an$best$Smax)
   showAnalysis(an,paste0("alpha=",alphas[i]))
   
+  ne<-0
+  ke<-0
+  for (ni in 2:length(nmaxs)) {
+    useN<-my_data$n>nmaxs[ni-1] & my_data$n<=nmaxs[ni]
+    count<-sum(useN & useP)
+    ne<-ne+count*nResN[ni-1]
+    ke<-ke+count*kResN[ni-1]
+  }
+  nRes_expect<-c(nRes_expect,ne/sum(useP))
+  kRes_expect<-c(kRes_expect,ke/sum(useP))
+  
   # probability of significant given it is a non-null
-  wPlus<-1-ExpSamplingCDF(qnorm(1-alpha/2)/sqrt(my_data$n[use]-3),an$best$Kmax,1/sqrt(my_data$n[use]-3))
+  wPlus<-1-ExpSamplingCDF(qnorm(1-alpha/2)/sqrt(my_data$n[useP]-3),an$best$Kmax,1/sqrt(my_data$n[useP]-3))
   wPlus<-mean(wPlus)
   wNull<-alpha
   # probability of significant non-null or null
@@ -462,8 +530,8 @@ for (i in 1:length(alphas)) {
   fdr<-wNull*an$best$Nullmax/wAll
   fdrRes<-c(fdrRes,fdr)
   
-  use_sim<-my_data_sim$p<alpha & use_n
-  metaData<-list(result=list(rIV=my_data_sim$r_s[use_sim],nval=my_data_sim$n[use_sim],df1=my_data_sim$df1[use_sim]))
+  useP_sim<-my_data_sim$p<alpha & use_n
+  metaData<-list(result=list(rIV=my_data_sim$r_s[useP_sim],nval=my_data_sim$n[useP_sim],df1=my_data_sim$df1[useP_sim]))
   an_sim<-runMetaAnalysis(metaAnal,metaData)
   nRes_sim<-cbind(nRes_sim,an_sim$best$Nullmax)
   kRes_sim<-cbind(kRes_sim,an_sim$best$Kmax)
@@ -473,7 +541,7 @@ for (i in 1:length(alphas)) {
   showAnalysis(an_sim,paste0("sim:alpha=",alphas[i]))
   
   # probability of significant given it is a non-null
-  wPlus<-1-ExpSamplingCDF(qnorm(1-alpha/2)/sqrt(my_data_sim$n[use_sim]-3),an_sim$best$Kmax,1/sqrt(my_data_sim$n[use_sim]-3))
+  wPlus<-1-ExpSamplingCDF(qnorm(1-alpha/2)/sqrt(my_data_sim$n[useP_sim]-3),an_sim$best$Kmax,1/sqrt(my_data_sim$n[useP_sim]-3))
   wPlus<-mean(wPlus)
   wNull<-alpha
   # probability of significant non-null or null
@@ -486,8 +554,8 @@ for (i in 1:length(alphas)) {
 }
 alpha<-0.05
 
-doublePlot(alphas,"alpha",rbind(kRes,kRes_sim),rbind(kResCI,kRes_simCI),Llabel,
-           rbind(nRes,nRes_sim),rbind(nResCI,nRes_simCI),Plabel,xlog=TRUE)
+doublePlot(alphas,"alpha",rbind(kRes,kRes_expect),rbind(kResCI,kRes_simCI),Llabel,
+           rbind(nRes,nRes_expect),rbind(nResCI,nRes_simCI),Plabel,xlog=TRUE)
 
 doublePlot(alphas,"alpha",rbind(wRes,wRes_sim),NULL,"w",rbind(fdrRes,fdrRes_sim),NULL,"FDR",xlog=TRUE)
 
@@ -587,38 +655,3 @@ doublePlot(journals[dispOrder],"",
            legendLabels=c("t","r"))
 
 #######################################
-
-# test-type split by siblings
-
-siblings<-seq(1,10)
-statistics<-c("t","r")
-metaAnal<-list(meta_pdf="Exp",meta_psigAnal=TRUE,meta_nullAnal=TRUE)
-
-nn<-array(0,dim=c(2,length(siblings)))
-tnRes<-c()
-tkRes<-c()
-rnRes<-c()
-rkRes<-c()
-for (i in 1:(length(siblings))) {
-  usesb<-(my_data$Siblings==siblings[i])
-
-  uses<-(my_data$Statistic=="t") 
-  use<-usesb & uses
-  nn[1,i]<-sum(use)
-  metaData<-list(result=list(rIV=my_data$r_s[use],nval=my_data$n[use],df1=my_data$df1[use]))
-  an<-runMetaAnalysis(metaAnal,metaData)
-  showAnalysis(an,paste0("siblings=",siblings[i]))
-  tnRes<-cbind(tnRes,an$best$Nullmax)
-  tkRes<-cbind(tkRes,an$best$Kmax)
-  
-  uses<-(my_data$Statistic=="r") 
-  use<-usesb & uses
-  nn[2,i]<-sum(use)
-  metaData<-list(result=list(rIV=my_data$r_s[use],nval=my_data$n[use],df1=my_data$df1[use]))
-  an<-runMetaAnalysis(metaAnal,metaData)
-  showAnalysis(an,paste0("siblings=",siblings[i]))
-  rnRes<-cbind(rnRes,an$best$Nullmax)
-  rkRes<-cbind(rkRes,an$best$Kmax)
-}
-
-doublePlot(siblings,"",rbind(tkRes,rkRes),NULL,Llabel,rbind(tnRes,rnRes),NULL,Plabel,legendLabels=c("t","r"))

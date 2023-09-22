@@ -47,7 +47,7 @@ getMaxLikelihood<-function(zs,ns,df1,dist,metaAnalysis) {
   Nullmax<-result$par[2]
   Smax<- -result$value
   
-  # cross sections
+  # cross sections to find CI
   if (Nullmax==0) {
     nullCIlow<-0
   } else {
@@ -61,13 +61,20 @@ getMaxLikelihood<-function(zs,ns,df1,dist,metaAnalysis) {
     nullCIhigh<-approx(SnullX,nullvals,Smax-log(100))$y
   nullCI<-c(nullCIlow,nullCIhigh)  
 
-  kvals<-seq(0.02,Kmax,length.out=11)
+  kvals<-seq(0.02,Kmax,length.out=65)
   SkX<-getLogLikelihood(zs,ns,df1,dist,kvals,Nullmax,metaAnalysis$meta_psigAnal)
     kCIlow<-approx(SkX,kvals,Smax-log(100))$y
-  kvals<-seq(Kmax,1,length.out=11)
+  kvals<-seq(Kmax,1,length.out=65)
   SkX<-getLogLikelihood(zs,ns,df1,dist,kvals,Nullmax,metaAnalysis$meta_psigAnal)
     kCIhigh<-approx(SkX,kvals,Smax-log(100))$y
   kCI<-c(kCIlow,kCIhigh)  
+  
+  # cross sections for likelihood plot
+  nullvals<-seq(0,1,length.out=65)
+  SnullX<-getLogLikelihood(zs,ns,df1,dist,Kmax,nullvals,metaAnalysis$meta_psigAnal)
+  kvals<-seq(0,1,length.out=65)
+  SkX<-getLogLikelihood(zs,ns,df1,dist,kvals,Nullmax,metaAnalysis$meta_psigAnal)
+  
   
   return(list(Kmax=Kmax,Nullmax=Nullmax,Smax=Smax,kCI=kCI,nullCI=nullCI,
               SX=list(kvals=kvals,SkX=as.vector(SkX),nullvals=nullvals,SnullX=as.vector(SnullX))))
