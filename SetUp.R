@@ -17,6 +17,7 @@ library(ggimage)
 library(plotly)
 library(reshape)
 
+library(fitdistrplus)
 
 source("runMetaAnalysis.R")
 source("sampleLikelihood.R")
