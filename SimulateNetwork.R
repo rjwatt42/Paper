@@ -6,6 +6,7 @@ probLink=0.5
 strengthLink=0.44
 
 ncount=100
+ns=1000000
 
 
 rs_show=0
@@ -30,11 +31,10 @@ for (ni in 1:ncount) {
   }
 
   
-  ns=1000000
   testData=matrix(0,ns,ncols*nrows)
   for (t in seq(ncols*nrows,1,-1)) {
     use=which(fullLinks[,t]==1);
-    if (isempty(use)) {
+    if (length(use)==0) {
       testData[,t]=rnorm(ns);
     } else {
       usedVar=length(use)*(strengthLink^2)
