@@ -53,6 +53,7 @@ server <- function(input, output) {
                           sig<-ps<0.05
                           zsrs<-zsr[sig]
                           zp_rep1<-zp_rep[sig]
+                          wr<-rn2w(tanh(zp_rep),nr)
                           
                           h1a<-hist(zsr[zsr<max(h$breaks)],h$breaks,plot=FALSE)
                           h2a<-hist(zsrs[zsrs<max(h$breaks)],h$breaks,plot=FALSE)
@@ -70,10 +71,14 @@ server <- function(input, output) {
                           g2<-dataGraph(data.frame(x=h$breaks[2:101],y=h4a$counts/h3a$counts),
                                         xlabel="z[p]",ylabel="p(sig|rep)")
                           
+                          hw<-hist(wr,seq(0,1,length.out=101),plot=FALSE)
+                          g3<-dataGraph(hw,
+                                        xlabel="w[p]",ylabel="density",hist=TRUE)
+                          
                         },
                         "Multiple"={
                           ncount<-1000
-                          h1<-h2<-h3<-h4<-0
+                          h1<-h2<-h3<-h4<-hw<-0
                           id<-showNotification("Starting Multiple")
                           for (ni in 1:ncount) {
                             n<-input$sampleSize+runif(nSamples,input$sampleSize*0.5,input$sampleSize*10)
@@ -94,6 +99,7 @@ server <- function(input, output) {
                             sig<-ps<0.05
                             zsrs<-zsr[sig]
                             zp_rep1<-zp_rep[sig]
+                            wr<-rn2w(tanh(zp_rep),nr)
                             
                             h1a<-hist(zsr[zsr<max(h$breaks)],h$breaks,plot=FALSE)
                             h2a<-hist(zsrs[zsrs<max(h$breaks)],h$breaks,plot=FALSE)
@@ -105,6 +111,8 @@ server <- function(input, output) {
                             h3<-h3+h3a$density
                             h4<-h4+h4a$density*sum(h4a$counts)/sum(h3a$counts)
                             
+                            hw<-hw+hist(wr,seq(0,1,length.out=101),plot=FALSE)$density
+                            
                             if (floor(ni/100)*100==ni) showNotification(paste0(ni,"/",ncount),id=id)
                           }
                           removeNotification(id)
@@ -113,11 +121,15 @@ server <- function(input, output) {
                           
                           g2<-dataGraph(data.frame(x=h$breaks[2:101],y=h4/h3),
                                         xlabel="z[p]",ylabel="p(sig|rep)")
+                          
+                          g3<-dataGraph(list(density=hw,breaks=seq(0,1,length.out=101)),
+                                        xlabel="w[p]",ylabel="density",hist=TRUE)
+                          
                         }
                  )
                  g<-generate_tab("Graphs: ",titleWidth=50,
-                                 tabs=c("Samples","Populations"),
-                                 tabContents=c(g1,g2),
+                                 tabs=c("Samples","Populations","Power"),
+                                 tabContents=c(g1,g2,g3),
                                  open=1
                  ) 
                  output$mainHTML <- renderUI(HTML(g))

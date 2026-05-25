@@ -1,20 +1,20 @@
 
 dwdz<-function(z,n,t=2,alpha=NA) {
-  if (is.na(alpha)) alpha<-braw.env$alphaSig
+  if (is.na(alpha)) alpha<-0.05
   if (t==1) {
     dwdz<-dnorm(z,-qnorm(alpha)/sqrt(n-3),1/sqrt(n-3))
-    # dwdz<-exp(-(z*sqrt(n-3) + qnorm(braw.env$alphaSig))^2/2)*sqrt(n-3)/sqrt(2*pi)
+    # dwdz<-exp(-(z*sqrt(n-3) + qnorm(0.05))^2/2)*sqrt(n-3)/sqrt(2*pi)
   } else {
     dwdz<-dnorm(z,-qnorm(alpha/2)/sqrt(n-3),1/sqrt(n-3))
     dwdz<-dwdz+dnorm(z,+qnorm(alpha/2)/sqrt(n-3),1/sqrt(n-3))
-    # dwdz<-     exp(-(z*sqrt(n-3) + qnorm(braw.env$alphaSig/2))^2/2)*sqrt(n-3)/sqrt(2*pi)
-    # dwdz<-dwdz+exp(-(z*sqrt(n-3) - qnorm(braw.env$alphaSig/2))^2/2)*sqrt(n-3)/sqrt(2*pi)
+    # dwdz<-     exp(-(z*sqrt(n-3) + qnorm(0.05/2))^2/2)*sqrt(n-3)/sqrt(2*pi)
+    # dwdz<-dwdz+exp(-(z*sqrt(n-3) - qnorm(0.05/2))^2/2)*sqrt(n-3)/sqrt(2*pi)
   }
   return(dwdz)
 }
 
 zn2w<-function(z,n,t=2,alpha=NA){
-  if (is.na(alpha)) alpha<-braw.env$alphaSig
+  if (is.na(alpha)) alpha<-0.05
   z<-abs(z)
   w<-(z+n)*0 # just in case z and n are different lengths
   # one-tailed
@@ -31,8 +31,8 @@ zn2w<-function(z,n,t=2,alpha=NA){
   w  
 }
 
-rn2w<-function(r,n,t=2,alpha=NA){
-  if (is.na(alpha)) alpha<-braw.env$alphaSig
+rn2w<-function(r,n,t=2,alpha=0.05){
+  if (is.na(alpha)) alpha<-0.05
   if (!is.numeric(r)) {
     rL<-getRList(r)
     w<-n*0
@@ -52,7 +52,7 @@ rn2w<-function(r,n,t=2,alpha=NA){
 }
 
 wn2z<-function(w,n,t=2,alpha=NA){
-  if (is.na(alpha)) alpha<-braw.env$alphaSig
+  if (is.na(alpha)) alpha<-0.05
   if (t==1) {
     # one-tailed
     z<-(qnorm(w)-qnorm(alpha))/sqrt(n-3)
@@ -68,7 +68,7 @@ wn2z<-function(w,n,t=2,alpha=NA){
 }
 
 wn2r<-function(w,n,t=2,alpha=NA){
-  if (is.na(alpha)) alpha<-braw.env$alphaSig
+  if (is.na(alpha)) alpha<-0.05
   if (t==1) {
     # one-tailed
     z<-(qnorm(w)-qnorm(alpha))/sqrt(n-3)
