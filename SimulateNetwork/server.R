@@ -19,13 +19,14 @@ server <- function(input, output) {
   
   openTab<<-1
   
-  observeEvent({c(input$nStages,input$nVarsPerStage,input$probLink,input$strengthLink,
+  observeEvent({c(input$nStages,input$nVarsPerStage,
+                  input$linkRange,input$probLink,input$strengthLink,
                   input$separateZeros,input$action,input$actionB)}, 
                {
                  
                  nStages=input$nStages
                  nVarsPerStage=input$nVarsPerStage
-                 rangeLink=2
+                 rangeLink=input$linkRange
                  probLink=input$probLink
                  strengthLink=input$strengthLink
                  separateZeros<-input$separateZeros

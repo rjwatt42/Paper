@@ -60,19 +60,23 @@ ui <- fluidPage(
                   tags$table(width="100%",class="MyTable",
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,'nStages:')),
-                               tags$td(width = "40%", numericInput("nStages", NULL,value = 16))
+                               tags$td(width = "40%", numericInput("nStages", NULL,value = 16,step=1))
                              ),
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,'nVarsPerStage:')),
-                               tags$td(width = "40%", numericInput("nVarsPerStage", NULL,value = 8))
+                               tags$td(width = "40%", numericInput("nVarsPerStage", NULL,value = 8,step=1))
+                             ),
+                             tags$tr(
+                               tags$td(width = "60%", tags$div(style=localStyle,'linkRange:')),
+                               tags$td(width = "40%", numericInput("linkRange", NULL,value=2,step=1))
                              ),
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,'probLink:')),
-                               tags$td(width = "40%", numericInput("probLink", NULL,value=0.5))
+                               tags$td(width = "40%", numericInput("probLink", NULL,value=0.5,step=0.1))
                              ),
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,'strengthLink:')),
-                               tags$td(width = "40%", numericInput("strengthLink", NULL,value=0.65))
+                               tags$td(width = "40%", numericInput("strengthLink", NULL,value=0.65,step=0.1))
                              ),
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,'separateZeros:')),
@@ -84,7 +88,7 @@ ui <- fluidPage(
                              ),
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,' ')),
-                               tags$td(width = "40%", actionButton("actionB", "new"))
+                               tags$td(width = "40%", actionButton("actionB", "single"))
                              )
                   )
         ),
@@ -93,7 +97,7 @@ ui <- fluidPage(
                              tags$tr(
                                tags$td(tags$div('  ')),
                                tags$td(
-                                 tags$div(HTML('Code is <a href="https://github.com/rjwatt42/trafficData"><u>here</u></a>'))),
+                                 tags$div('to follow')),
                              )
                   )
         ),
