@@ -52,19 +52,28 @@ server <- function(input, output) {
                           ps<-r2p(tanh(zsr),nr)
                           sig<-ps<0.05
                           zsrs<-zsr[sig]
+                          zp_rep1<-zp_rep[sig]
                           
                           h1a<-hist(zsr[zsr<max(h$breaks)],h$breaks,plot=FALSE)
                           h2a<-hist(zsrs[zsrs<max(h$breaks)],h$breaks,plot=FALSE)
                           h1<-h1a$density
                           h2<-h2a$density*sum(h2a$counts)/sum(h1a$counts)
 
+                          h3a<-hist(abs(zp_use[abs(zp_use)<max(h$breaks)]),h$breaks,plot=FALSE)
+                          h4a<-hist(abs(zp_rep1[abs(zp_rep1)<max(h$breaks)]),h$breaks,plot=FALSE)
+                          h3<-h3a$density
+                          h4<-h4a$density*sum(h4a$counts)/sum(h3a$counts)
+                          
                           h0<-list(hist=list(density=h1,breaks=h$breaks,density1=h2))
                           g1<-plotNetworkHist(h0,"samp")
-
+                          
+                          g2<-dataGraph(data.frame(x=h$breaks[2:101],y=h4a$counts/h3a$counts),
+                                        xlabel="z[p]",ylabel="p(sig|rep)")
+                          
                         },
                         "Multiple"={
                           ncount<-1000
-                          h1<-h2<-0
+                          h1<-h2<-h3<-h4<-0
                           id<-showNotification("Starting Multiple")
                           for (ni in 1:ncount) {
                             n<-input$sampleSize+runif(nSamples,input$sampleSize*0.5,input$sampleSize*10)
@@ -84,19 +93,34 @@ server <- function(input, output) {
                             ps<-r2p(tanh(zsr),nr)
                             sig<-ps<0.05
                             zsrs<-zsr[sig]
+                            zp_rep1<-zp_rep[sig]
                             
                             h1a<-hist(zsr[zsr<max(h$breaks)],h$breaks,plot=FALSE)
                             h2a<-hist(zsrs[zsrs<max(h$breaks)],h$breaks,plot=FALSE)
                             h1<-h1+h1a$density
                             h2<-h2+h2a$density*sum(h2a$counts)/sum(h1a$counts)
+                            
+                            h3a<-hist(abs(zp_use[abs(zp_use)<max(h$breaks)]),h$breaks,plot=FALSE)
+                            h4a<-hist(abs(zp_rep1[abs(zp_rep1)<max(h$breaks)]),h$breaks,plot=FALSE)
+                            h3<-h3+h3a$density
+                            h4<-h4+h4a$density*sum(h4a$counts)/sum(h3a$counts)
+                            
                             if (floor(ni/100)*100==ni) showNotification(paste0(ni,"/",ncount),id=id)
                           }
                           removeNotification(id)
                           h0<-list(hist=list(density=h1,breaks=h$breaks,density1=h2))
                           g1<-plotNetworkHist(h0,"samp")
+                          
+                          g2<-dataGraph(data.frame(x=h$breaks[2:101],y=h4/h3),
+                                        xlabel="z[p]",ylabel="p(sig|rep)")
                         }
                  )
-                 output$mainHTML <- renderUI(HTML(g1))
+                 g<-generate_tab("Graphs: ",titleWidth=50,
+                                 tabs=c("Samples","Populations"),
+                                 tabContents=c(g1,g2),
+                                 open=1
+                 ) 
+                 output$mainHTML <- renderUI(HTML(g))
                }
   )
   observeEvent({c(input$sampleSize,input$actionSamp,input$actionB)}, 
@@ -120,6 +144,7 @@ server <- function(input, output) {
                           ps<-r2p(tanh(zs),n)
                           sig<-ps<0.05
                           zss<-zs[sig]
+                          zps_use<-zp_use[sig]
                           
                           h1a<-hist(zs[zs<max(h$breaks)],h$breaks,plot=FALSE)
                           h2a<-hist(zss[zss<max(h$breaks)],h$breaks,plot=FALSE)
@@ -128,10 +153,15 @@ server <- function(input, output) {
                           h0<-list(hist=list(density=h1,breaks=h$breaks,density1=h2))
                           g1<-plotNetworkHist(h0,"samp")
                           
+                          h3a<-hist(abs(zp_use[abs(zp_use)<max(h$breaks)]),h$breaks,plot=FALSE)
+                          h4a<-hist(abs(zps_use[abs(zps_use)<max(h$breaks)]),h$breaks,plot=FALSE)
+                          g2<-dataGraph(data.frame(x=h$breaks[2:101],y=h4a$counts/h3a$counts),
+                                        xlabel="z[p]",ylabel="p(sig)")
+                          
                         },
                         "Multiple"={
                           ncount<-1000
-                          h1<-h2<-0
+                          h1<-h2<-h3<-h4<-0
                           id<-showNotification("Starting Multiple")
                           for (ni in 1:ncount) {
                           n<-input$sampleSize+runif(nSamples,input$sampleSize*0.5,input$sampleSize*10)
@@ -147,14 +177,29 @@ server <- function(input, output) {
                           h2a<-hist(zss[zss<max(h$breaks)],h$breaks,plot=FALSE)
                           h1<-h1+h1a$density
                           h2<-h2+h2a$density*sum(h2a$counts)/sum(h1a$counts)
+                          
+                          h3a<-hist(abs(zp_use[abs(zp_use)<max(h$breaks)]),h$breaks,plot=FALSE)
+                          h4a<-hist(abs(zps_use[abs(zps_use)<max(h$breaks)]),h$breaks,plot=FALSE)
+                          h3<-h3+h3a$density
+                          h4<-h4+h4a$density*sum(h4a$counts)/sum(h3a$counts)
+                          
                           if (floor(ni/100)*100==ni) showNotification(paste0(ni,"/",ncount),id=id)
                         }
                         removeNotification(id)
                         h0<-list(hist=list(density=h1,breaks=h$breaks,density1=h2))
                         g1<-plotNetworkHist(h0,"samp")
+                        
+                        g2<-dataGraph(data.frame(x=h$breaks[2:101],y=h4/h3),
+                                      xlabel="z[p]",ylabel="p(sig)")
+                        
                         }
                  )
-                 output$mainHTML <- renderUI(HTML(g1))
+                 g<-generate_tab("Graphs: ",titleWidth=50,
+                                 tabs=c("Samples","Populations"),
+                                 tabContents=c(g1,g2),
+                                 open=1
+                 ) 
+                 output$mainHTML <- renderUI(HTML(g))
                }
   )
   observeEvent({c(input$nStages,input$nVarsPerStage,
