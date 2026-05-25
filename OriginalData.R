@@ -1,7 +1,10 @@
 ####################################
+nMin<-5
+nMax<-500
+alpha<-0.05
+alpha<-1 # to stop removing ns results
 
-# my_data <- read.table(pipe("pbpaste"), sep="\t", header = TRUE)
-my_data_orig <- read_excel("fullfile.xlsx")
+my_data_orig <- readxl::read_excel("~/Documents/GitHub/Paper/fullfile.xlsx")
 my_data<-my_data_orig
 print(paste("ALL:",nrow(my_data)))
 
