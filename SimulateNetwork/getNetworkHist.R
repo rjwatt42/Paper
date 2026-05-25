@@ -14,5 +14,5 @@ getNetworkHist<-function(fullLinks,fullModel,strengthLink,avoidZeros,h) {
   
   est<-fitdistrplus::fitdist(zp,"exp")
   
-  return(list(hist=h1,zvals=zp,est=est,zeros=sum(Stheta==0)/sum(Stheta<1)))
+  return(list(hist=h1,zvals=zp,est=est,Stheta=Stheta,zeros=sum(Stheta==0)/sum(Stheta<1)))
 }

@@ -84,29 +84,55 @@ ui <- fluidPage(
                              ),
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,'do:')),
-                               tags$td(width = "40%", selectInput("action", NULL,c("Single","Multiple"),selected="Single",selectize=FALSE))
+                               tags$td(width = "40%", selectInput("actionPop", NULL,c("Single","Multiple"),selected="Single",selectize=FALSE))
                              ),
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,' ')),
-                               tags$td(width = "40%", actionButton("actionB", "single"))
+                               tags$td(width = "40%", actionButton("actionA", "single"))
                              )
                   )
         ),
         wellPanel(tags$div(style="font-weight:bold;",'Samples'),
-                  tags$table(width="100%",
+                  tags$table(width="100%",class="MyTable",
                              tags$tr(
-                               tags$td(tags$div('  ')),
-                               tags$td(
-                                 tags$div('to follow')),
+                               tags$td(width = "60%", tags$div(style=localStyle,'sampleSize:')),
+                               tags$td(width = "40%", numericInput("sampleSize", NULL,value = 50,step=10))
+                             ),
+                             tags$tr(
+                               tags$td(width = "60%", tags$div(style=localStyle,'do:')),
+                               tags$td(width = "40%", selectInput("actionSamp", NULL,c("Single","Multiple"),selected="Single",selectize=FALSE))
+                             ),
+                             tags$tr(
+                               tags$td(width = "60%", tags$div(style=localStyle,' ')),
+                               tags$td(width = "40%", actionButton("actionB", "sample"))
+                             )
+                  )
+        ),
+        wellPanel(tags$div(style="font-weight:bold;",'Replications'),
+                  tags$table(width="100%",class="MyTable",
+                             tags$tr(
+                               tags$td(width = "60%", tags$div(style=localStyle,'repPower:')),
+                               tags$td(width = "40%", numericInput("repPower", NULL,value = 0.8,step=0.1))
+                             ),
+                             tags$tr(
+                               tags$td(width = "60%", tags$div(style=localStyle,'do:')),
+                               tags$td(width = "40%", selectInput("actionRep", NULL,c("Single","Multiple"),selected="Single",selectize=FALSE))
+                             ),
+                             tags$tr(
+                               tags$td(width = "60%", tags$div(style=localStyle,' ')),
+                               tags$td(width = "40%", actionButton("actionC", "sample"))
                              )
                   )
         ),
         wellPanel(tags$div(style="font-weight:bold;",'Link to Code'),
                   tags$table(width="100%",
                              tags$tr(
-                               tags$td(tags$div('  ')),
                                tags$td(
-                                 tags$div(HTML('Code is <a href="https://github.com/rjwatt42/trafficData"><u>here</u></a>'))),
+                                 tags$div(HTML('Code is <a href="https://github.com/rjwatt42/Paper"><u>here</u></a>'))),
+                             ),
+                             tags$tr(
+                               tags$td(
+                                 tags$div('in subfolder "SimulateNetwork"')),
                              )
                   )
         )
