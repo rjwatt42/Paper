@@ -1162,8 +1162,10 @@ dataGraph<-function(data,fill='white',colour="black",poly=FALSE, hist=FALSE,
     x<-data$breaks
     y<-data$density
     y1<-data$density1
+    y2<-data$density2
     if (is.null(y1)) data<-data.frame(x=c(matrix(rbind(x,x),1)),y=c(0,matrix(rbind(y,y),1),0))
     else data<-data.frame(x=c(matrix(rbind(x,x),1)),y=c(0,matrix(rbind(y,y),1),0),y1=c(0,matrix(rbind(y1,y1),1),0))
+    if (!is.null(y2)) data$y2<-c(0,matrix(rbind(y2,y2),1),0)
     poly<-TRUE
   }
   
@@ -1208,13 +1210,27 @@ dataGraph<-function(data,fill='white',colour="black",poly=FALSE, hist=FALSE,
       g<-addG(g,dataPolygon(data1,fill=fill))
     } else {
       g<-addG(g,dataPolygon(data1,fill="#F44"))
-      y1<-data$y1
-      miny<-min(y1,na.rm=TRUE)
-      y1[is.na(y1)]<-miny
-      data2<-data.frame(x=x[c(1,1:n,n)],y=c(miny,y1,miny))
-      g<-addG(g,dataPolygon(data2,fill="#4F4"))
-      label<-paste0("p(sig)=",format(sum(y1)/sum(y),digits=3))
-      g<-addG(g,dataText(data.frame(x=max(x),y=0),label,hjust=1))
+      if (is.null(data$y2)) {
+        y1<-data$y1
+        miny<-min(y1,na.rm=TRUE)
+        y1[is.na(y1)]<-miny
+        data2<-data.frame(x=x[c(1,1:n,n)],y=c(miny,y1,miny))
+        g<-addG(g,dataPolygon(data2,fill="#4F4"))
+        label<-paste0("p(sig)=",format(sum(y1)/sum(y),digits=3))
+        g<-addG(g,dataText(data.frame(x=max(x),y=0),label,hjust=1,size=0.5))
+      }
+      if (!is.null(data$y2)) {
+        y1<-data$y1
+        miny<-min(y1,na.rm=TRUE)
+        y1[is.na(y1)]<-miny
+        data2<-data.frame(x=x[c(1,1:n,n)],y=c(miny,y1,miny))
+        g<-addG(g,dataPolygon(data2,fill="#FA4"))
+        y2<-data$y2
+        miny<-min(y2,na.rm=TRUE)
+        y2[is.na(y2)]<-miny
+        data2<-data.frame(x=x[c(1,1:n,n)],y=c(miny,y2,miny))
+        g<-addG(g,dataPolygon(data2,fill="#4F4"))
+      }
     }
     if (braw.env$autoShow) {showHTML(g); return(invisible(g))}
     return(g)
