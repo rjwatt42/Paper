@@ -23,7 +23,7 @@ server <- function(input, output) {
   
   openTab<<-1
   
-  observeEvent({c(input$actionC1,input$actionC2)}, 
+  observeEvent({c(input$sampleSize,input$repPower,input$actionC1,input$actionC2)}, 
                {
                  if (isempty(Stheta)) return()
                  
@@ -32,7 +32,7 @@ server <- function(input, output) {
                  use<-Stheta<1
                  zp<-atanh(Stheta[use])
                  
-                 if (input$actionC1) {
+                 if (!input$actionC2) {
                    n<-input$sampleSize+runif(nSamples,input$sampleSize*0.5,input$sampleSize*10)
                    esd<-1/sqrt(n-3)
                    err<-rnorm(nSamples,0,esd)
@@ -166,7 +166,7 @@ server <- function(input, output) {
                  output$mainHTML <- renderUI(HTML(g))
                }
   )
-  observeEvent({c(input$actionB1,input$actionB2)}, 
+  observeEvent({c(input$sampleSize,input$actionB1,input$actionB2)}, 
                {
                  if (isempty(Stheta)) return()
                  
@@ -175,7 +175,7 @@ server <- function(input, output) {
                  use<-Stheta<1
                  zp<-atanh(Stheta[use])
                  
-                 if (input$actionB1) {
+                 if (!input$actionB2) {
                    n<-input$sampleSize+runif(nSamples,input$sampleSize*0.5,input$sampleSize*10)
                    esd<-1/sqrt(n-3)
                    err<-rnorm(nSamples,0,esd)
