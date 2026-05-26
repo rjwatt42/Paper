@@ -13,7 +13,7 @@ plotNetworkHist<-function(h1,type="pop") {
          },
          "samp"={
            g1<-dataGraph(h1$hist,xlabel="z[s]",ylabel="density",
-                         hist=TRUE)
+                         hist=TRUE,doPsig=TRUE)
          }
   )
   return(g1)

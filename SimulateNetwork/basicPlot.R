@@ -1149,7 +1149,7 @@ drawArrow<-function(start,len,direction=0,ends="last",col="#000000",fill="white"
 
 
 #' @export
-dataGraph<-function(data,fill='white',colour="black",poly=FALSE, hist=FALSE,
+dataGraph<-function(data,fill='white',colour="black",poly=FALSE, hist=FALSE,doPsig=FALSE,
                     legend=NULL,
                          xlim=NULL,ylim=NULL,
                          xlabel=NULL,ylabel=NULL,
@@ -1216,8 +1216,10 @@ dataGraph<-function(data,fill='white',colour="black",poly=FALSE, hist=FALSE,
         y1[is.na(y1)]<-miny
         data2<-data.frame(x=x[c(1,1:n,n)],y=c(miny,y1,miny))
         g<-addG(g,dataPolygon(data2,fill="#4F4"))
+        if (doPsig) {
         label<-paste0("p(sig)=",format(sum(y1)/sum(y),digits=3))
         g<-addG(g,dataText(data.frame(x=max(x),y=0),label,hjust=1,size=0.5))
+        }
       }
       if (!is.null(data$y2)) {
         y1<-data$y1

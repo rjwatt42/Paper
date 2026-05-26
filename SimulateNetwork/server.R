@@ -1,9 +1,10 @@
 
 library(pracma)
-source("r2p.R")
-source("samplePower.R")
 source("basicPlot.r")
 source('HTMLWidget.R')
+source("r2p.R")
+source("samplePower.R")
+source("getSampleSizes.R")
 source("doNetwork.R")
 source("makeNetwork.R")
 source("plotNetwork.R")
@@ -19,7 +20,7 @@ h<-c()
 network<-c()
 
 server <- function(input, output) {
-  initGraph("HTML",gsize=450,autoShow=FALSE)
+  initGraph("HTML",gsize=450,autoShow=FALSE,fontScale = 1)
   
   openTab<<-1
   
@@ -33,7 +34,7 @@ server <- function(input, output) {
                  zp<-atanh(Stheta[use])
                  
                  if (!input$actionC2) {
-                   n<-input$sampleSize+runif(nSamples,input$sampleSize*0.5,input$sampleSize*10)
+                   n<-getSampleSizes(nSamples,dist="Gamma",sN=input$sampleSize,sNRandSD=33,minN=5)
                    esd<-1/sqrt(n-3)
                    err<-rnorm(nSamples,0,esd)
                    
@@ -51,22 +52,23 @@ server <- function(input, output) {
                    err<-rnorm(length(nr),0,esd)
                    zsr<-abs(zp_rep+err)
                    ps<-r2p(tanh(zsr),nr)
-                   sig<-ps<0.05
-                   zsrs<-zsr[sig]
-                   zp_rep1<-zp_rep[sig]
+                   sigr<-ps<0.05
+                   zsrs<-zsr[sigr]
+                   zp_rep1<-zp_rep[sigr]
                    wr1<-rn2w(tanh(zp_use),n)
                    wr2<-rn2w(tanh(zp_rep),nr)
-                   wr3<-rn2w(tanh(zp_rep[sig]),nr[sig])
-                   
+                   wr3<-rn2w(tanh(zp_rep[sigr]),nr[sigr])
                    h1a<-hist(zs[zs<max(h$breaks)],h$breaks,plot=FALSE)
                    h2a<-hist(zsr[zsr<max(h$breaks)],h$breaks,plot=FALSE)
                    h3a<-hist(zsrs[zsrs<max(h$breaks)],h$breaks,plot=FALSE)
                    h1<-h1a$density
                    h2<-h2a$density*sum(h2a$counts)/sum(h1a$counts)
                    h3<-h3a$density*sum(h3a$counts)/sum(h1a$counts)
-                   h0<-list(hist=list(density=h1,breaks=h$breaks,density1=h2,density2=h3))
-                   g1<-plotNetworkHist(h0,"samp")
-                   
+                   h0<-list(density=h1,breaks=h$breaks,density1=h2,density2=h3)
+                   g1<-dataGraph(h0,xlabel="z[s]",ylabel="density",
+                                 title=paste0("p[sig](original)=",format(mean(sig),digits=3),"    p[sig](repl)=",format(mean(sigr),digits=3),"    p[sig](total)=",format(mean(sig)*mean(sigr),digits=3)),
+                                 hist=TRUE,doPsig=TRUE)
+
                    h1pa<-hist(abs(zp_use[abs(zp_use)<max(h$breaks)]),h$breaks,plot=FALSE)
                    h2pa<-hist(abs(zp_rep[abs(zp_rep)<max(h$breaks)]),h$breaks,plot=FALSE)
                    h3pa<-hist(abs(zp_rep1[abs(zp_rep1)<max(h$breaks)]),h$breaks,plot=FALSE)
@@ -74,14 +76,16 @@ server <- function(input, output) {
                                       density=h1pa$counts,
                                       density1=h2pa$counts,
                                       density2=h3pa$counts),
-                                 xlabel="z[p]",ylabel="p(sig|rep)",hist=TRUE)
+                                 xlabel="z[p]",ylabel="density",
+                                 title=paste0("p[sig](original)=",format(mean(sig),digits=3),"    p[sig](repl)=",format(mean(sigr),digits=3),"    p[sig](total)=",format(mean(sig)*mean(sigr),digits=3)),
+                                 hist=TRUE,doPsig=TRUE)
                    
                    hw1<-hist(wr1,seq(0,1,length.out=101),plot=FALSE)
                    hw2<-hist(wr2,seq(0,1,length.out=101),plot=FALSE)
                    hw3<-hist(wr3,seq(0,1,length.out=101),plot=FALSE)
-                   hw1$density<-hw1$density
-                   hw1$density1<-hw2$density
-                   hw1$density2<-hw3$density
+                   hw1$density<-hw2$density
+                   hw1$density1<-hw3$density*sum(hw3$counts)/sum(hw2$counts)
+                   # hw1$density2<-hw3$density*sum(hw3$counts)/sum(hw1$counts)
                    g3<-dataGraph(hw1,
                                  xlabel="w[p]",ylabel="density",hist=TRUE)
                    
@@ -89,6 +93,7 @@ server <- function(input, output) {
                  if (input$actionC2) {
                    ncount<-1000
                    h1<-h2<-h3<-h1p<-h2p<-h3p<-hw1<-hw2<-hw3<-0
+                   sigAll1<-sigAll2<-0
                    id<-showNotification("Starting Multiple",duration=NULL)
                    for (ni in 1:ncount) {
                      if (newNetwork) {
@@ -99,7 +104,7 @@ server <- function(input, output) {
                        use<-h1$Stheta<1
                        zp<-atanh(h1$Stheta[use])
                      }
-                     n<-input$sampleSize+runif(nSamples,input$sampleSize*0.5,input$sampleSize*10)
+                     n<-getSampleSizes(nSamples,dist="Gamma",sN=input$sampleSize,sNRandSD=33,minN=5)
                      esd<-1/sqrt(n-3)
                      err<-rnorm(nSamples,0,esd)
                      
@@ -111,18 +116,20 @@ server <- function(input, output) {
                      sig<-ps<0.05
                      zss<-zs[sig]
                      zp_rep<-zp_use[sig]
+                     sigAll1<-sigAll1+mean(sig)
                      
                      nr<-rw2n(tanh(zss),input$repPower)
                      esd<-1/sqrt(nr-3)
                      err<-rnorm(length(nr),0,esd)
                      zsr<-abs(zp_rep+err)
                      ps<-r2p(tanh(zsr),nr)
-                     sig<-ps<0.05
-                     zsrs<-zsr[sig]
-                     zp_rep1<-zp_rep[sig]
+                     sigr<-ps<0.05
+                     zsrs<-zsr[sigr]
+                     zp_rep1<-zp_rep[sigr]
                      wr1<-rn2w(tanh(zp_use),n)
                      wr2<-rn2w(tanh(zp_rep),nr)
-                     wr3<-rn2w(tanh(zp_rep[sig]),nr[sig])
+                     wr3<-rn2w(tanh(zp_rep[sigr]),nr[sigr])
+                     sigAll2<-sigAll2+mean(sigr)
                      
                      h1a<-hist(zs[zs<max(h$breaks)],h$breaks,plot=FALSE)
                      h2a<-hist(zsr[zsr<max(h$breaks)],h$breaks,plot=FALSE)
@@ -145,14 +152,18 @@ server <- function(input, output) {
                      if (floor(ni/100)*100==ni) showNotification(paste0(ni,"/",ncount),id=id,duration=NULL)
                    }
                    removeNotification(id)
-                   h0<-list(hist=list(density=h1,breaks=h$breaks,density1=h2,density2=h3))
-                   g1<-plotNetworkHist(h0,"samp")
+                   h0<-list(density=h1,breaks=h$breaks,density1=h2,density2=h3)
+                   g1<-dataGraph(h0,xlabel="z[s]",ylabel="density",
+                                 title=paste0("p[sig](original)=",format(sigAll1/ncount,digits=3),"    p[sig](repl)=",format(sigAll2/ncount,digits=3),"    p[sig](total)=",format(sigAll1/ncount*sigAll2/ncount,digits=3)),
+                                 hist=TRUE,doPsig=TRUE)
                    
                    g2<-dataGraph(list(breaks=h$breaks,
                                       density=h1p,
                                       density1=h2p,
                                       density2=h3p),
-                                 xlabel="z[p]",ylabel="p(sig|rep)",hist=TRUE)
+                                 xlabel="z[p]",ylabel="density",
+                                 title=paste0("p[sig](original)=",format(sigAll1/ncount,digits=3),"    p[sig](repl)=",format(sigAll2/ncount,digits=3),"    p[sig](total)=",format(sigAll1/ncount*sigAll2/ncount,digits=3)),
+                                 hist=TRUE,doPsig=TRUE)
                    
                    g3<-dataGraph(list(density=hw1,density1=hw2,density2=hw3,breaks=seq(0,1,length.out=101)),
                                  xlabel="w[p]",ylabel="density",hist=TRUE)
@@ -176,7 +187,7 @@ server <- function(input, output) {
                  zp<-atanh(Stheta[use])
                  
                  if (!input$actionB2) {
-                   n<-input$sampleSize+runif(nSamples,input$sampleSize*0.5,input$sampleSize*10)
+                   n<-getSampleSizes(nSamples,dist="Gamma",sN=input$sampleSize,sNRandSD=33,minN=5)
                    esd<-1/sqrt(n-3)
                    err<-rnorm(nSamples,0,esd)
                    
@@ -197,15 +208,19 @@ server <- function(input, output) {
                    h2a<-hist(zss[zss<max(h$breaks)],h$breaks,plot=FALSE)
                    h1<-h1a$density
                    h2<-h2a$density*sum(h2a$counts)/sum(h1a$counts)
-                   h0<-list(hist=list(density=h1,breaks=h$breaks,density1=h2))
-                   g1<-plotNetworkHist(h0,"samp")
-                   
+                   h0<-list(density=h1,breaks=h$breaks,density1=h2)
+                   g1<-dataGraph(h0,xlabel="z[s]",ylabel="density",
+                                 title=paste0("p[sig]=",format(mean(sig),digits=3)),
+                                 hist=TRUE,doPsig=TRUE)
+
                    h3a<-hist(abs(zp_use[abs(zp_use)<max(h$breaks)]),h$breaks,plot=FALSE)
                    h4a<-hist(abs(zps_use[abs(zps_use)<max(h$breaks)]),h$breaks,plot=FALSE)
                    g2<-dataGraph(list(breaks=h$breaks,
                                       density=h3a$density,
                                       density1=h4a$density*sum(h4a$counts)/sum(h3a$counts)),
-                                 xlabel="z[p]",ylabel="p(sig)",hist=TRUE)
+                                 title=paste0("p[sig]=",format(mean(sig),digits=3)),
+                                 xlabel="z[p]",ylabel="density",
+                                 hist=TRUE,doPsig=TRUE)
                    
                    hw<-hist(wr,seq(0,1,length.out=101),plot=FALSE)
                    hw2<-hist(wrs,seq(0,1,length.out=101),plot=FALSE)
@@ -217,6 +232,7 @@ server <- function(input, output) {
                  if (input$actionB2) {
                    ncount<-1000
                    h1<-h2<-h3<-h4<-hw1<-hw2<-0
+                   sigAll<-0
                    id<-showNotification("Starting Multiple",duration=NULL)
                    for (ni in 1:ncount) {
                      if (newNetwork) {
@@ -227,7 +243,7 @@ server <- function(input, output) {
                        use<-h1$Stheta<1
                        zp<-atanh(h1$Stheta[use])
                      }
-                     n<-input$sampleSize+runif(nSamples,input$sampleSize*0.5,input$sampleSize*10)
+                     n<-getSampleSizes(nSamples,dist="Gamma",sN=input$sampleSize,sNRandSD=33,minN=5)
                      esd<-1/sqrt(n-3)
                      err<-rnorm(nSamples,0,esd)
                      use<-ceiling(runif(nSamples,0,1)*length(zp))
@@ -241,6 +257,7 @@ server <- function(input, output) {
                      zss<-zs[sig]
                      zps_use<-zp_use[sig]
                      wrs<-rn2w(tanh(zps_use),n[sig])
+                     sigAll<-sigAll+mean(sig)
                      
                      h1a<-hist(zs[zs<max(h$breaks)],h$breaks,plot=FALSE)
                      h2a<-hist(zss[zss<max(h$breaks)],h$breaks,plot=FALSE)
@@ -258,16 +275,20 @@ server <- function(input, output) {
                      if (floor(ni/100)*100==ni) showNotification(paste0(ni,"/",ncount),id=id,duration=NULL)
                    }
                    removeNotification(id)
-                   h0<-list(hist=list(density=h1,breaks=h$breaks,density1=h2))
-                   g1<-plotNetworkHist(h0,"samp")
-                   
+                   h0<-list(density=h1,breaks=h$breaks,density1=h2)
+                   g1<-dataGraph(h0,xlabel="z[s]",ylabel="density",
+                                 title=paste0("p[sig]=",format(sigAll/ncount,digits=3)),
+                                 hist=TRUE,doPsig=TRUE)
+
                    g2<-dataGraph(list(breaks=h$breaks,
                                       density=h3,
                                       density1=h4),
-                                 xlabel="z[p]",ylabel="p(sig)",hist=TRUE)
+                                 xlabel="z[p]",ylabel="density",
+                                 title=paste0("p[sig]=",format(sigAll/ncount,digits=3)),
+                                 hist=TRUE,doPsig=TRUE)
                    
                    # g2<-dataGraph(data.frame(x=h$breaks[2:101],y=h4/h3),
-                   #               xlabel="z[p]",ylabel="p(sig)")
+                   #               xlabel="z[p]",ylabel="p[sig]")
                    g3<-dataGraph(list(density=hw1,density1=hw2,breaks=seq(0,1,length.out=101)),
                                  xlabel="w[p]",ylabel="density",hist=TRUE)
                    
