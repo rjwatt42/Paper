@@ -82,13 +82,17 @@ ui <- fluidPage(
                                tags$td(width = "60%", tags$div(style=localStyle,'separateZeros:')),
                                tags$td(width = "40%", checkboxInput("separateZeros", NULL,value=TRUE))
                              ),
+                             # tags$tr(
+                             #   tags$td(width = "60%", tags$div(style=localStyle,'do:')),
+                             #   tags$td(width = "40%", selectInput("actionPop", NULL,c("Single","Multiple"),selected="Single",selectize=FALSE))
+                             # ),
                              tags$tr(
-                               tags$td(width = "60%", tags$div(style=localStyle,'do:')),
-                               tags$td(width = "40%", selectInput("actionPop", NULL,c("Single","Multiple"),selected="Single",selectize=FALSE))
+                               tags$td(width = "60%", tags$div(style=localStyle,' ')),
+                               tags$td(width = "40%", actionButton("actionA1", "single"))
                              ),
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,' ')),
-                               tags$td(width = "40%", actionButton("actionA", "single"))
+                               tags$td(width = "40%", actionButton("actionA2", "multiple"))
                              )
                   )
         ),
@@ -98,13 +102,17 @@ ui <- fluidPage(
                                tags$td(width = "60%", tags$div(style=localStyle,'sampleSize:')),
                                tags$td(width = "40%", numericInput("sampleSize", NULL,value = 50,step=10))
                              ),
+                             # tags$tr(
+                             #   tags$td(width = "60%", tags$div(style=localStyle,'do:')),
+                             #   tags$td(width = "40%", selectInput("actionSamp", NULL,c("Single","Multiple"),selected="Single",selectize=FALSE))
+                             # ),
                              tags$tr(
-                               tags$td(width = "60%", tags$div(style=localStyle,'do:')),
-                               tags$td(width = "40%", selectInput("actionSamp", NULL,c("Single","Multiple"),selected="Single",selectize=FALSE))
+                               tags$td(width = "60%", tags$div(style=localStyle,' ')),
+                               tags$td(width = "40%", actionButton("actionB1", "single"))
                              ),
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,' ')),
-                               tags$td(width = "40%", actionButton("actionB", "sample"))
+                               tags$td(width = "40%", actionButton("actionB2", "multiple"))
                              )
                   )
         ),
@@ -114,13 +122,17 @@ ui <- fluidPage(
                                tags$td(width = "60%", tags$div(style=localStyle,'repPower:')),
                                tags$td(width = "40%", numericInput("repPower", NULL,value = 0.8,step=0.1))
                              ),
+                             # tags$tr(
+                             #   tags$td(width = "60%", tags$div(style=localStyle,'do:')),
+                             #   tags$td(width = "40%", selectInput("actionRep", NULL,c("Single","Multiple"),selected="Single",selectize=FALSE))
+                             # ),
                              tags$tr(
-                               tags$td(width = "60%", tags$div(style=localStyle,'do:')),
-                               tags$td(width = "40%", selectInput("actionRep", NULL,c("Single","Multiple"),selected="Single",selectize=FALSE))
+                               tags$td(width = "60%", tags$div(style=localStyle,' ')),
+                               tags$td(width = "40%", actionButton("actionC1", "single"))
                              ),
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,' ')),
-                               tags$td(width = "40%", actionButton("actionC", "sample"))
+                               tags$td(width = "40%", actionButton("actionC2", "multiple"))
                              )
                   )
         ),
