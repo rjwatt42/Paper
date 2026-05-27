@@ -1,15 +1,8 @@
-getNetworkHist<-function(fullLinks,networkStructure,h) {
+getNetworkHist<-function(network,separateZeros,h) {
   
-  if (networkStructure$fullModel) {
-    rval<-rowSums(fullLinks) # how many inputs to each node
-    rval[rval>0]<-sqrt(1/rval[rval>0])*networkStructure$strengthLink
-    rval<-matrix(rval,nrow(fullLinks),ncol(fullLinks),byrow=FALSE)
-  } else rval<-networkStructure$strengthLink
-  
-  Stheta<-links2Stheta(fullLinks*rval)
-  use<-Stheta<1
-  if (networkStructure$separateZeros) use<-use & Stheta>0
-  zp<-atanh(Stheta[use])
+  use<-network$Stheta<1
+  if (separateZeros) use<-use & network$Stheta>0
+  zp<-atanh(network$Stheta[use])
   h1<-hist(zp[zp<max(h$breaks)],h$breaks,plot=FALSE)
   
   est<-fitdistrplus::fitdist(zp,"exp")

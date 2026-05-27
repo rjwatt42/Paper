@@ -80,14 +80,10 @@ ui <- fluidPage(
                              ),
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,'separateZeros:')),
-                               tags$td(width = "40%", checkboxInput("separateZeros", NULL,value=TRUE))
+                               tags$td(width = "40%", checkboxInput("separateZeros", NULL,value=FALSE))
                              )
                   ),
                   tags$table(width="100%",class="MyTable",
-                             # tags$tr(
-                             #   tags$td(width = "60%", tags$div(style=localStyle,'do:')),
-                             #   tags$td(width = "40%", selectInput("actionPop", NULL,c("Single","Multiple"),selected="Single",selectize=FALSE))
-                             # ),
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,' ')),
                                tags$td(width = "40%", actionButton("actionA1", "single network"))
@@ -105,8 +101,8 @@ ui <- fluidPage(
                                tags$td(width = "40%", numericInput("sampleSize", NULL,value = 50,step=10))
                              ),
                              # tags$tr(
-                             #   tags$td(width = "60%", tags$div(style=localStyle,'do:')),
-                             #   tags$td(width = "40%", selectInput("actionSamp", NULL,c("Single","Multiple"),selected="Single",selectize=FALSE))
+                             #   tags$td(width = "60%", tags$div(style=localStyle,' ')),
+                             #   tags$td(width = "40%", actionButton("actionB0", "1 sample"))
                              # ),
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,' ')),
@@ -124,10 +120,6 @@ ui <- fluidPage(
                                tags$td(width = "60%", tags$div(style=localStyle,'repPower:')),
                                tags$td(width = "40%", numericInput("repPower", NULL,value = 0.8,step=0.1))
                              ),
-                             # tags$tr(
-                             #   tags$td(width = "60%", tags$div(style=localStyle,'do:')),
-                             #   tags$td(width = "40%", selectInput("actionRep", NULL,c("Single","Multiple"),selected="Single",selectize=FALSE))
-                             # ),
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,' ')),
                                tags$td(width = "40%", actionButton("actionC1", "single network"))
