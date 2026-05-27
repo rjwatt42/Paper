@@ -1149,7 +1149,7 @@ drawArrow<-function(start,len,direction=0,ends="last",col="#000000",fill="white"
 
 
 #' @export
-dataGraph<-function(data,fill='white',colour="black",poly=FALSE, hist=FALSE,doPsig=FALSE,
+dataGraph<-function(data,fill='white',colour="black",poly=FALSE, hist=FALSE,
                     legend=NULL,
                          xlim=NULL,ylim=NULL,
                          xlabel=NULL,ylabel=NULL,
@@ -1209,29 +1209,28 @@ dataGraph<-function(data,fill='white',colour="black",poly=FALSE, hist=FALSE,doPs
     if (is.null(data$y1)) {
       g<-addG(g,dataPolygon(data1,fill=fill))
     } else {
-      g<-addG(g,dataPolygon(data1,fill="#F44"))
+      fill<-c("#F44","#FA4","#4F4")
+      g<-addG(g,dataPolygon(data1,fill=fill[1]))
       if (is.null(data$y2)) {
         y1<-data$y1
         miny<-min(y1,na.rm=TRUE)
         y1[is.na(y1)]<-miny
         data2<-data.frame(x=x[c(1,1:n,n)],y=c(miny,y1,miny))
-        g<-addG(g,dataPolygon(data2,fill="#4F4"))
-        if (doPsig) {
-        label<-paste0("p(sig)=",format(sum(y1)/sum(y),digits=3))
-        g<-addG(g,dataText(data.frame(x=max(x),y=0),label,hjust=1,size=0.5))
-        }
+        g<-addG(g,dataPolygon(data2,fill=fill[3]))
+        if (!is.null(legend)) g<-addG(g,dataLegend(data.frame(names=legend,colours=rep(NA,length(names)))))
       }
       if (!is.null(data$y2)) {
         y1<-data$y1
         miny<-min(y1,na.rm=TRUE)
         y1[is.na(y1)]<-miny
         data2<-data.frame(x=x[c(1,1:n,n)],y=c(miny,y1,miny))
-        g<-addG(g,dataPolygon(data2,fill="#FA4"))
+        g<-addG(g,dataPolygon(data2,fill=fill[2]))
         y2<-data$y2
         miny<-min(y2,na.rm=TRUE)
         y2[is.na(y2)]<-miny
         data2<-data.frame(x=x[c(1,1:n,n)],y=c(miny,y2,miny))
-        g<-addG(g,dataPolygon(data2,fill="#4F4"))
+        g<-addG(g,dataPolygon(data2,fill=fill[3]))
+        if (!is.null(legend)) g<-addG(g,dataLegend(data.frame(names=legend,colours=rep(NA,length(legend)))))
       }
     }
     if (braw.env$autoShow) {showHTML(g); return(invisible(g))}

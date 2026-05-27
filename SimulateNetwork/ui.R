@@ -63,8 +63,8 @@ ui <- fluidPage(
                                tags$td(width = "40%", numericInput("nStages", NULL,value = 16,step=1))
                              ),
                              tags$tr(
-                               tags$td(width = "60%", tags$div(style=localStyle,'nVarsPerStage:')),
-                               tags$td(width = "40%", numericInput("nVarsPerStage", NULL,value = 8,step=1))
+                               tags$td(width = "60%", tags$div(style=localStyle,'nNodesPerStage:')),
+                               tags$td(width = "40%", numericInput("nNodesPerStage", NULL,value = 8,step=1))
                              ),
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,'linkRange:')),
@@ -81,14 +81,16 @@ ui <- fluidPage(
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,'separateZeros:')),
                                tags$td(width = "40%", checkboxInput("separateZeros", NULL,value=TRUE))
-                             ),
+                             )
+                  ),
+                  tags$table(width="100%",class="MyTable",
                              # tags$tr(
                              #   tags$td(width = "60%", tags$div(style=localStyle,'do:')),
                              #   tags$td(width = "40%", selectInput("actionPop", NULL,c("Single","Multiple"),selected="Single",selectize=FALSE))
                              # ),
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,' ')),
-                               tags$td(width = "40%", actionButton("actionA1", "single"))
+                               tags$td(width = "40%", actionButton("actionA1", "single network"))
                              ),
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,' ')),
@@ -108,7 +110,7 @@ ui <- fluidPage(
                              # ),
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,' ')),
-                               tags$td(width = "40%", actionButton("actionB1", "single"))
+                               tags$td(width = "40%", actionButton("actionB1", "single network"))
                              ),
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,' ')),
@@ -128,7 +130,7 @@ ui <- fluidPage(
                              # ),
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,' ')),
-                               tags$td(width = "40%", actionButton("actionC1", "single"))
+                               tags$td(width = "40%", actionButton("actionC1", "single network"))
                              ),
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,' ')),
