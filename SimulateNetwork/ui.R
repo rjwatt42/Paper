@@ -23,7 +23,7 @@ ui <- fluidPage(
       ".well {padding:2px; margin:0px;margin-bottom:8px;margin-left:0px;margin-right:0px;background-color: #eeeeee;border-radius:0} "
     )),
     tags$style(HTML( # checkbox
-      ".checkbox {line-height: 10px;margin:0px;padding:0px;padding-left:4px;}"
+      ".checkbox {line-height: 10px;margin:0px;padding:0px;padding-left:0px;}"
     )),
     tags$style(HTML(
       ".table label{ display: table-cell; text-align: center;vertical-align: middle; }  .form-group { display: table-row;}"
@@ -97,13 +97,17 @@ ui <- fluidPage(
         wellPanel(tags$div(style="font-weight:bold;",'Samples'),
                   tags$table(width="100%",class="MyTable",
                              tags$tr(
-                               tags$td(width = "60%", tags$div(style=localStyle,'sampleSize:')),
-                               tags$td(width = "40%", numericInput("sampleSize", NULL,value = 50,step=10))
+                               tags$td(width = "50%", tags$div(style=localStyle,'sampleSize:')),
+                               tags$td(width = "40%", numericInput("sampleSize", NULL,value = 50,step=10)),
+                               tags$td(width = "6%", tags$div(style=localStyle,'±')),
+                               tags$td(width = "4%", checkboxInput("sampleSizeV", NULL,value = TRUE))
+                             )
+                  ),
+                  tags$table(width="100%",class="MyTable",
+                             tags$tr(
+                               tags$td(width = "60%", tags$div(style=localStyle,' ')),
+                               tags$td(width = "40%", actionButton("actionB0", "single sample"))
                              ),
-                             # tags$tr(
-                             #   tags$td(width = "60%", tags$div(style=localStyle,' ')),
-                             #   tags$td(width = "40%", actionButton("actionB0", "1 sample"))
-                             # ),
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,' ')),
                                tags$td(width = "40%", actionButton("actionB1", "single network"))
@@ -119,6 +123,12 @@ ui <- fluidPage(
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,'repPower:')),
                                tags$td(width = "40%", numericInput("repPower", NULL,value = 0.8,step=0.1))
+                             )
+                  ),
+                  tags$table(width="100%",class="MyTable",
+                             tags$tr(
+                               tags$td(width = "60%", tags$div(style=localStyle,' ')),
+                               tags$td(width = "40%", actionButton("actionC0", "single sample"))
                              ),
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,' ')),

@@ -29,7 +29,11 @@ makeNetwork<-function(networkStructure=list(nStages=16,nNodesPerStage=8,rangeLin
     rval<-matrix(rval,nrow(fullLinks),ncol(fullLinks),byrow=FALSE)
   } else rval<-networkStructure$strengthLink
   
-  network$Stheta<-links2Stheta(fullLinks*rval)
+  Stheta<-links2Stheta(fullLinks*rval)
+  d1<-matrix(diag(Stheta),nrow=nrow(Stheta),ncol=ncol(Stheta),byrow=TRUE)
+  d2<-matrix(diag(Stheta),nrow=nrow(Stheta),ncol=ncol(Stheta),byrow=FALSE)
+  Stheta<-Stheta/sqrt(d1)/sqrt(d2)
+  network$Stheta<-Stheta
   
   return(network)
 }
