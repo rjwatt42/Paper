@@ -1,18 +1,23 @@
-makeNetworkReplication<-function(samples,repPower,h,hist=TRUE) {
+makeNetworkReplication<-function(samples,repPower,nIncrease,h,hist=TRUE) {
   
   repl<-replHist<-NULL
 
   zp<-samples$all$zp
   zs<-samples$all$zs  
+  n<-samples$all$n
   wp<-samples$all$wp
+  links<-samples$all$links
   sig<-samples$sig
   
+  ns<-n[sig]
     zps<-zp[sig]
     zss<-zs[sig]
     wps<-wp[sig]
+    linkss<-links[sig]
     
     zpr<-zps
     nr<-rw2n(tanh(zss),repPower)
+    if (nIncrease) nr[nr<ns]<-ns[nr<ns]
     esd<-1/sqrt(nr-3)
     err<-rnorm(length(nr),0,esd)
     zsr<-abs(zpr+err)
@@ -25,8 +30,16 @@ makeNetworkReplication<-function(samples,repPower,h,hist=TRUE) {
     zprs<-zpr[sigr]
     wprs<-rn2w(tanh(zprs),nr[sigr])
     
-    repl=list(allrep=list(zp=zpr,zs=zsr,n=nr,p=pr,wp=wpr),
-              sigrep=sigr,
+    linkWhenRepl<-sum(sigr & (linkss!=0))/sum(sigr)
+    replWhenLink<-sum(sigr & (linkss!=0))/sum((links!=0))
+    
+    zeroWhenRepl<-sum(sigr & (zpr==0))/sum(sigr)
+    replWhenZero<-sum(sigr & (zpr==0))/sum(zp==0)
+    # print(c(zeroWhenRepl,replWhenZero))
+    
+    repl=list(allrep=list(zp=zpr,zs=zsr,n=nr,p=pr,wp=wpr,no=n[sig]),
+              sigrep=sigr,replWhenLink=replWhenLink,linkWhenRepl=linkWhenRepl,
+              zeroWhenRepl=zeroWhenRepl,replWhenZero=replWhenZero,
               sigOnlyrep=list(zp=zprs,zs=zssr,n=nr[sigr],p=pr[sigr],wp=wprs)
     )
 

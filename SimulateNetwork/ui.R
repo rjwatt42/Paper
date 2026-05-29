@@ -100,7 +100,7 @@ ui <- fluidPage(
                                tags$td(width = "50%", tags$div(style=localStyle,'sampleSize:')),
                                tags$td(width = "40%", numericInput("sampleSize", NULL,value = 50,step=10)),
                                tags$td(width = "6%", tags$div(style=localStyle,'±')),
-                               tags$td(width = "4%", checkboxInput("sampleSizeV", NULL,value = TRUE))
+                               tags$td(width = "4%", checkboxInput("sampleSizeRand", NULL,value = TRUE))
                              )
                   ),
                   tags$table(width="100%",class="MyTable",
@@ -121,8 +121,10 @@ ui <- fluidPage(
         wellPanel(tags$div(style="font-weight:bold;",'Replications'),
                   tags$table(width="100%",class="MyTable",
                              tags$tr(
-                               tags$td(width = "60%", tags$div(style=localStyle,'repPower:')),
-                               tags$td(width = "40%", numericInput("repPower", NULL,value = 0.8,step=0.1))
+                               tags$td(width = "50%", tags$div(style=localStyle,'repPower:')),
+                               tags$td(width = "40%", numericInput("repPower", NULL,value = 0.9,step=0.1)),
+                               tags$td(width = "6%", tags$div(style=localStyle,'↑')),
+                               tags$td(width = "4%", checkboxInput("repPowerUp", NULL,value = FALSE))
                              )
                   ),
                   tags$table(width="100%",class="MyTable",

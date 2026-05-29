@@ -21,7 +21,6 @@ makeNetwork<-function(networkStructure=list(nStages=16,nNodesPerStage=8,rangeLin
   
   network<-links2Path(fullLinks,networkStructure$nStages,networkStructure$nNodesPerStage)
   
-  network$fullLinks<-fullLinks
   
   if (networkStructure$fullModel) {
     rval<-rowSums(fullLinks) # how many inputs to each node
@@ -29,7 +28,10 @@ makeNetwork<-function(networkStructure=list(nStages=16,nNodesPerStage=8,rangeLin
     rval<-matrix(rval,nrow(fullLinks),ncol(fullLinks),byrow=FALSE)
   } else rval<-networkStructure$strengthLink
   
-  Stheta<-links2Stheta(fullLinks*rval)
+  fullLinks<-fullLinks*rval
+  network$fullLinks<-fullLinks
+  
+  Stheta<-links2Stheta(fullLinks)
   d1<-matrix(diag(Stheta),nrow=nrow(Stheta),ncol=ncol(Stheta),byrow=TRUE)
   d2<-matrix(diag(Stheta),nrow=nrow(Stheta),ncol=ncol(Stheta),byrow=FALSE)
   Stheta<-Stheta/sqrt(d1)/sqrt(d2)

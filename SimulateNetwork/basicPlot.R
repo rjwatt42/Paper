@@ -9,6 +9,7 @@ initGraph<-function(type='ggplot',gsize=400,aspect=1.3,
                     g=NULL,
                     addHistory=FALSE,
                     fontSize=1,
+                    fontScale=fontScale,
                     plotSize=c(aspect,1)*gsize,
                     labelSize=gsize/100*fontScale,
                     dotSize=gsize/100*fontScale*1.25,
@@ -29,6 +30,7 @@ initHTML<-function(gsize=400,aspect=1.3,fontScale=1.5,xlim=c(0,1),ylim=c(0,1)) {
   braw.env <<- list(graphicsType='HTML',
                     addHistory=FALSE,
                     fontSize=0.1,
+                    fontScale=fontScale,
                     plotSize=c(aspect,1)*gsize,
                     labelSize=gsize/100*fontScale,
                     dotSize=gsize/100*fontScale*1.25,
@@ -1004,9 +1006,9 @@ strNChar<-function(str) {
   return(nother+nsub*0.6)
 }
 dataLegend<-function(data,title="",titleCol="black",fontsize=1,shape=21,location="right") {
-  fontsize=0.6*fontsize*braw.env$fontSize
+  fontsize=0.5*fontsize*braw.env$fontSize*braw.env$fontScale
   dy=0.06*fontsize/braw.env$plotArea[4]
-  dx=0.03*fontsize/braw.env$plotArea[3] # because rangeX() below
+  dx=0.6*0.03*fontsize/braw.env$plotArea[3] # because rangeX() below
   if (nchar(title)>0) tn<-1.2 else tn<-0
   nrows<-tn+length(data$names)+1
   if (all(is.na(data$colours))) xoff=0 else xoff=2
@@ -1149,7 +1151,7 @@ drawArrow<-function(start,len,direction=0,ends="last",col="#000000",fill="white"
 
 
 #' @export
-dataGraph<-function(data,fill='white',colour="black",poly=FALSE, hist=FALSE,
+dataGraph<-function(data,fill='white',colour="black",alpha=1,poly=FALSE, hist=FALSE,
                     legend=NULL,
                          xlim=NULL,ylim=NULL,
                          xlabel=NULL,ylabel=NULL,
@@ -1190,7 +1192,7 @@ dataGraph<-function(data,fill='white',colour="black",poly=FALSE, hist=FALSE,
       if (!is.na(colour))
         g<-addG(g,dataPath(d,linewidth=0.5))
       if (!is.na(fill))
-        g<-addG(g,dataPoint(d,fill=data$fill[i]))
+        g<-addG(g,dataPoint(d,fill=data$fill[i],alpha=alpha))
     }
     if (!is.null(legend)) g<-addG(g,dataLegend(data.frame(names=legend$names,colours=data$fill),title=legend$legendTitle))
     if (braw.env$autoShow) {showHTML(g); return(invisible(g))}
@@ -1208,8 +1210,9 @@ dataGraph<-function(data,fill='white',colour="black",poly=FALSE, hist=FALSE,
     data1<-data.frame(x=x[c(1,1:n,n)],y=c(miny,y,miny))
     if (is.null(data$y1)) {
       g<-addG(g,dataPolygon(data1,fill=fill))
+      if (!is.null(legend)) g<-addG(g,dataLegend(data.frame(names=legend,colours=rep(NA,length(names)))))
     } else {
-      fill<-c("#F44","#FA4","#4F4")
+      if (length(fill)==1) fill<-c("#F44","#FA4","#4F4")
       g<-addG(g,dataPolygon(data1,fill=fill[1]))
       if (is.null(data$y2)) {
         y1<-data$y1
@@ -1217,7 +1220,10 @@ dataGraph<-function(data,fill='white',colour="black",poly=FALSE, hist=FALSE,
         y1[is.na(y1)]<-miny
         data2<-data.frame(x=x[c(1,1:n,n)],y=c(miny,y1,miny))
         g<-addG(g,dataPolygon(data2,fill=fill[3]))
-        if (!is.null(legend)) g<-addG(g,dataLegend(data.frame(names=legend,colours=rep(NA,length(names)))))
+        if (!is.null(legend)) {
+          if (is.atomic(legend)) legend=data.frame(names=legend,colours=rep(NA,length(names)))
+          g<-addG(g,dataLegend(legend))
+        }
       }
       if (!is.null(data$y2)) {
         y1<-data$y1
@@ -1239,7 +1245,7 @@ dataGraph<-function(data,fill='white',colour="black",poly=FALSE, hist=FALSE,
   if (!is.na(colour))
     g<-addG(g,dataPath(data,linewidth=0.5))
   if (!is.na(fill))
-    g<-addG(g,dataPoint(data,fill=fill))
+    g<-addG(g,dataPoint(data,fill=fill,alpha=alpha))
   
   if (braw.env$autoShow) {showHTML(g); return(invisible(g))}
   return(g)
