@@ -30,14 +30,7 @@ ui <- fluidPage(
       )),
     
     tags$style(HTML(
-      "#shiny-notification-panel {
-      position: fixed;
-      bottom: 70%;
-      right: 50%;
-      transform: translate(50%, 50%);
-      width: 250px; 
-      height: 100px;
-    }"
+      "#shiny-notification-panel {position: fixed;bottom: 70%;right: 50%;transform: translate(50%, 50%);width: 250px; height: 100px;}"
     )),
     
     tags$style(HTML( # tab panels
@@ -109,19 +102,34 @@ ui <- fluidPage(
                              )
                   )
         ),
-        wellPanel(tags$div(style="font-weight:bold;",'Actions'),
-        tabsetPanel(type="tabs",id="AnalysisPanel",
-                    tabPanel(tags$div(style="font-weight:bold;",'Samples'),
-        # wellPanel(tags$div(style="font-weight:bold;",'Samples'),
-                  tags$table(width="100%",class="MyTable",
+        wellPanel(tags$div(style="font-weight:bold;",'Samples'),
+                  tags$table(width="100%",class="MyTable",style="border:solid;border-width:1px;",
+                             tags$tr(height="10px"),
                              tags$tr(
                                tags$td(width = "50%", tags$div(style=localStyle,'sampleSize:')),
                                tags$td(width = "40%", numericInput("sampleSize", NULL,value = 50,step=10)),
                                tags$td(width = "6%", tags$div(style=localStyle,'±')),
                                tags$td(width = "4%", checkboxInput("sampleSizeRand", NULL,value = TRUE))
-                             )
+                             ),
+                             tags$tr(height="10px")
+                  ),
+                  tags$table(width="100%",class="MyTable",style="border:solid;border-width:1px;border-top:none;",
+                             tags$tr(
+                               tags$td(width = "50%", tags$div(style=localStyle,'do Replication:')),
+                               tags$td(width = "40%", checkboxInput("repOn", NULL,value = FALSE)),
+                               tags$td(width = "6%", tags$div(style=localStyle,' ')),
+                               tags$td(width = "4%", tags$div(style=localStyle,' '))
+                             ),
+                             tags$tr(
+                               tags$td(width = "50%", tags$div(style=localStyle,'repPower:')),
+                               tags$td(width = "40%", numericInput("repPower", NULL,value = 0.9,step=0.1)),
+                               tags$td(width = "6%", tags$div(style=localStyle,'↑')),
+                               tags$td(width = "4%", checkboxInput("repPowerUp", NULL,value = FALSE))
+                             ),
+                             tags$tr(height="10px")
                   ),
                   tags$table(width="100%",class="MyTable",
+                             tags$tr(height="10px"),
                              tags$tr(
                                tags$td(width = "60%", tags$div(style=localStyle,' ')),
                                tags$td(width = "40%", actionButton("actionB0", "single sample"))
@@ -135,33 +143,6 @@ ui <- fluidPage(
                                tags$td(width = "40%", actionButton("actionB2", "multiple"))
                              )
                   )
-        ),
-        tabPanel(tags$div(style="font-weight:bold;",'Replications'),
-                 # wellPanel(tags$div(style="font-weight:bold;",'Replications'),
-                  tags$table(width="100%",class="MyTable",
-                             tags$tr(
-                               tags$td(width = "50%", tags$div(style=localStyle,'repPower:')),
-                               tags$td(width = "40%", numericInput("repPower", NULL,value = 0.9,step=0.1)),
-                               tags$td(width = "6%", tags$div(style=localStyle,'↑')),
-                               tags$td(width = "4%", checkboxInput("repPowerUp", NULL,value = FALSE))
-                             )
-                  ),
-                  tags$table(width="100%",class="MyTable",
-                             tags$tr(
-                               tags$td(width = "60%", tags$div(style=localStyle,' ')),
-                               tags$td(width = "40%", actionButton("actionC0", "single sample"))
-                             ),
-                             tags$tr(
-                               tags$td(width = "60%", tags$div(style=localStyle,' ')),
-                               tags$td(width = "40%", actionButton("actionC1", "single network"))
-                             ),
-                             tags$tr(
-                               tags$td(width = "60%", tags$div(style=localStyle,' ')),
-                               tags$td(width = "40%", actionButton("actionC2", "multiple"))
-                             )
-                  )
-        )
-        )
         ),
         wellPanel(tags$div(style="font-weight:bold;",'Link to Code'),
                   tags$table(width="100%",
