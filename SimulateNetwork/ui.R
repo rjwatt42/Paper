@@ -40,6 +40,21 @@ ui <- fluidPage(
     }"
     )),
     
+    tags$style(HTML( # tab panels
+      # paste0(".tabbable > .nav > a {font-weight: light; font-size: ",fontSize ,"; padding:0px; margin:0px; margin-left:1px; margin-right:1px; color:#222222; background-color:#aaaaaa;}"),
+      ".nav {margin:0px;padding:0px;font-weight:100;}",
+      ".nav-tabs > li {margin:0px;padding:0px;font-weight:100;}",
+      ".nav-tabs>li>a {margin:0px;padding:0px;color:grey;font-style:italic;font-weight:100; }", # all tabs
+      ".nav-tabs {margin:0px;padding:0px;font-weight:100;}",
+      ".nav-tabs>li.active>a, .nav-tabs>li.active>a:focus, .nav-tabs>li.active>a:hover {font-style:normal;font-weight:900; color: #000;background-color: #ccc;margin:0px;padding:0px;}",
+    )),
+    tags$style(HTML( # tab panes
+      ".tab-content {margin:0px;padding:0px;background-color:#cccccc;}"
+    )),
+    tags$style(HTML( # tab panes
+      ".tab-pane {margin:0px;padding:0px;}"
+    )),
+    
     tags$style(HTML(
       ".shiny-notification {background-color: #F88;color: black;}"
     ))
@@ -94,7 +109,10 @@ ui <- fluidPage(
                              )
                   )
         ),
-        wellPanel(tags$div(style="font-weight:bold;",'Samples'),
+        wellPanel(tags$div(style="font-weight:bold;",'Actions'),
+        tabsetPanel(type="tabs",id="AnalysisPanel",
+                    tabPanel(tags$div(style="font-weight:bold;",'Samples'),
+        # wellPanel(tags$div(style="font-weight:bold;",'Samples'),
                   tags$table(width="100%",class="MyTable",
                              tags$tr(
                                tags$td(width = "50%", tags$div(style=localStyle,'sampleSize:')),
@@ -118,7 +136,8 @@ ui <- fluidPage(
                              )
                   )
         ),
-        wellPanel(tags$div(style="font-weight:bold;",'Replications'),
+        tabPanel(tags$div(style="font-weight:bold;",'Replications'),
+                 # wellPanel(tags$div(style="font-weight:bold;",'Replications'),
                   tags$table(width="100%",class="MyTable",
                              tags$tr(
                                tags$td(width = "50%", tags$div(style=localStyle,'repPower:')),
@@ -141,6 +160,8 @@ ui <- fluidPage(
                                tags$td(width = "40%", actionButton("actionC2", "multiple"))
                              )
                   )
+        )
+        )
         ),
         wellPanel(tags$div(style="font-weight:bold;",'Link to Code'),
                   tags$table(width="100%",
