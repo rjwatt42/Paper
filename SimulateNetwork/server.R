@@ -15,7 +15,8 @@ source("plotNetworkHist.R")
 
 # data<-NULL
 gs<-c(" "," "," ")
-Stheta<-c()
+gTab<-""
+
 h<-c()
 network<-c()
 
@@ -36,12 +37,18 @@ server <- function(input, output) {
                  samples<-makeNetworkSample(network,input$sampleSize,input$sampleSizeRand,nSamples,remove,h,hist=TRUE)
                  replication<-makeNetworkReplication(samples,input$repPower,input$repPowerUp,h,hist=TRUE)
                  
-                 legend<-c(#paste0("p(sig | all)=",format(mean(samples$sig),digits=3)),
-                   paste0("p(repl | all)=",format(mean(samples$sig)*mean(replication$sigrep),digits=3)),
+                 legend<-c(
+                   paste0("p(links)=",format(mean(network$fullLinks!=0),digits=3)),
+                   paste0("p(zero)=",format(mean(network$Stheta==0),digits=3)),
+                   " ",
+                   paste0("p(sig | all)=",format(mean(samples$sig),digits=3)),
                    paste0("p(repl | sig)=",format(mean(replication$sigrep),digits=3)),
+                   paste0(" "),
+                   paste0("p(repl | all)=",format(mean(samples$sig)*mean(replication$sigrep),digits=3)),
                    paste0("p(repl | link)=",format(replication$replWhenLink,digits=3)),
-                   paste0("p(link | repl)=",format(replication$linkWhenRepl,digits=3)),
                    paste0("p(repl | zero)=",format(replication$replWhenZero,digits=3)),
+                   paste0(" "),
+                   paste0("p(link | repl)=",format(replication$linkWhenRepl,digits=3)),
                    paste0("p(zero | repl)=",format(replication$zeroWhenRepl,digits=3))
                  )
                  g1<-dataGraph(replication$h1rep,xlabel="z[s]",ylabel="density",legend=legend,
@@ -52,12 +59,14 @@ server <- function(input, output) {
                  g3<-dataGraph(replication$h3rep,
                                xlabel="w[p]",ylabel="density",hist=TRUE)
                  g4<-plotZN(samples,replication)
-                 g<-generate_tab("Graphs: ",titleWidth=50,
+                 gTab<<-generate_tab("Graphs: ",titleWidth=50,
                                  tabs=c("Samples","Populations","Power","z-n"),
                                  tabContents=c(g1,g2,g3,g4),
-                                 open=1
+                                 open=1,
+                                 history=gTab
+                                 
                  ) 
-                 output$mainHTML <- renderUI(HTML(g))
+                 output$mainHTML <- renderUI(HTML(gTab))
                }
   )
   observeEvent(input$actionC1, 
@@ -67,12 +76,18 @@ server <- function(input, output) {
                  samples<-makeNetworkSample(network,input$sampleSize,input$sampleSizeRand,nSamples,remove,h,hist=TRUE)
                  replication<-makeNetworkReplication(samples,input$repPower,input$repPowerUp,h,hist=TRUE)
                  
-                 legend<-c(#paste0("p(sig | all)=",format(mean(samples$sig),digits=3)),
-                   paste0("p(repl | all)=",format(mean(samples$sig)*mean(replication$sigrep),digits=3)),
+                 legend<-c(
+                   paste0("p(links)=",format(mean(network$fullLinks!=0),digits=3)),
+                   paste0("p(zero)=",format(mean(network$Stheta==0),digits=3)),
+                   " ",
+                   paste0("p(sig | all)=",format(mean(samples$sig),digits=3)),
                    paste0("p(repl | sig)=",format(mean(replication$sigrep),digits=3)),
+                   paste0(" "),
+                   paste0("p(repl | all)=",format(mean(samples$sig)*mean(replication$sigrep),digits=3)),
                    paste0("p(repl | link)=",format(replication$replWhenLink,digits=3)),
-                   paste0("p(link | repl)=",format(replication$linkWhenRepl,digits=3)),
                    paste0("p(repl | zero)=",format(replication$replWhenZero,digits=3)),
+                   paste0(" "),
+                   paste0("p(link | repl)=",format(replication$linkWhenRepl,digits=3)),
                    paste0("p(zero | repl)=",format(replication$zeroWhenRepl,digits=3))
                  )
                  g1<-dataGraph(replication$h1rep,xlabel="z[s]",ylabel="density",legend=legend,
@@ -83,12 +98,14 @@ server <- function(input, output) {
                  g3<-dataGraph(replication$h3rep,
                                xlabel="w[p]",ylabel="density",hist=TRUE)
                  g4<-plotZN(samples,replication)
-                 g<-generate_tab("Graphs: ",titleWidth=50,
+                 gTab<<-generate_tab("Graphs: ",titleWidth=50,
                                  tabs=c("Samples","Populations","Power","zs-n"),
                                  tabContents=c(g1,g2,g3,g4),
-                                 open=1
+                                 open=1,
+                                 history=gTab
+                                 
                  ) 
-                 output$mainHTML <- renderUI(HTML(g))
+                 output$mainHTML <- renderUI(HTML(gTab))
                }
   )
   observeEvent(input$actionC2, 
@@ -97,6 +114,7 @@ server <- function(input, output) {
                  h1<-h1a<-h1b<-0
                  h2<-h2a<-h2b<-0
                  h3<-h3a<-0
+                 links<-zeros<-c()
                  sigAll1<-sigAll2<-c()
                  linkWhenReplAll<-replWhenLinkAll<-zeroWhenReplAll<-replWhenZeroAll<-c()
                  id<-showNotification("Starting Multiple",duration=NULL)
@@ -104,6 +122,9 @@ server <- function(input, output) {
                    if (newNetwork) {
                      network<<-makeNetwork(networkStructure)
                    }
+                   links<-c(links,mean(network$fullLinks!=0))
+                   zeros<-c(zeros,mean(network$Stheta==0))
+                   
                    samples<-makeNetworkSample(network,input$sampleSize,input$sampleSizeRand,nSamples,remove,h,hist=TRUE)
                    replication<-makeNetworkReplication(samples,input$repPower,input$repPowerUp,h,hist=TRUE)
                    
@@ -126,6 +147,15 @@ server <- function(input, output) {
                    if (floor(ni/(nCount/10))*(nCount/10)==ni) showNotification(paste0(ni,"/",nCount),id=id,duration=NULL)
                  }
                  removeNotification(id)
+                 
+                 s9<-paste0("p(links)=",format(mean(links),digits=3),
+                            "  {",format(min(links),digits=3),
+                            ",",format(max(links),digits=3),
+                            "}")
+                 s10<-paste0("p(zeros)=",format(mean(zeros),digits=3),
+                            "  {",format(min(zeros),digits=3),
+                            ",",format(max(zeros),digits=3),
+                            "}")
                  
                  s1<-paste0("p(sig | all)=",format(mean(sigAll1),digits=3),
                             "  {",format(min(sigAll1),digits=3),
@@ -156,8 +186,7 @@ server <- function(input, output) {
                             ",",format(max(zeroWhenReplAll),digits=3),
                             "}")
                  
-                 legend<-c(#s1,
-                           s2,s3,s4,s5,s6,s7)
+                 legend<-c(s9,s10," ",s1,s2," ",s3,s4,s6," ",s5,s7)
                  h0<-list(density=h1,breaks=h$breaks,density1=h1a,density2=h1b)
                  g1<-dataGraph(h0,xlabel="z[s]",ylabel="density",legend=legend,
                                hist=TRUE)
@@ -167,12 +196,13 @@ server <- function(input, output) {
                  h0<-list(density=h3,breaks=h$breaks,density1=h3a)
                  g3<-dataGraph(h0,xlabel="w[p]",ylabel="density",hist=TRUE)
                  
-                 g<-generate_tab("Graphs: ",titleWidth=50,
+                 gTab<<-generate_tab("Graphs: ",titleWidth=50,
                                  tabs=c("Samples","Populations","Power"),
                                  tabContents=c(g1,g2,g3),
-                                 open=1
+                                 open=1,
+                                 history=gTab
                  )
-                 output$mainHTML <- renderUI(HTML(g))
+                 output$mainHTML <- renderUI(HTML(gTab))
                }
   )
   
@@ -182,56 +212,76 @@ server <- function(input, output) {
                  nSamples<-0
                  samples<-makeNetworkSample(network,input$sampleSize,input$sampleSizeRand,nSamples,remove,h,hist=TRUE)
 
-                 legend<-c(paste0("p(sig | all)=",format(mean(samples$sig),digits=3)),
-                           paste0("p(links | sig)=",format(samples$linkWhenSig,digits=3)),
-                           paste0("p(sig | links)=",format(samples$sigWhenLink,digits=3)),
-                           paste0("p(sig | zero)=",format(samples$sigWhenZero,digits=3)),
-                           paste0("p(zero | sig)=",format(samples$zeroWhenSig,digits=3))
+                 legend<-c(
+                   paste0("p(links)=",format(mean(network$fullLinks!=0),digits=3)),
+                   paste0("p(zero)=",format(mean(network$Stheta==0),digits=3)),
+                   " ",
+                   paste0("p(sig | all)=",format(mean(samples$sig),digits=3)),
+                   " ",
+                   paste0("p(links | sig)=",format(samples$linkWhenSig,digits=3)),
+                   paste0("p(zero | sig)=",format(samples$zeroWhenSig,digits=3)),
+                   " ",
+                   paste0("p(sig | links)=",format(samples$sigWhenLink,digits=3)),
+                   paste0("p(sig | zero)=",format(samples$sigWhenZero,digits=3))
                  )
                  g1<-dataGraph(samples$h1,xlabel="z[s]",ylabel="density",legend=legend,hist=TRUE)
                  g2<-dataGraph(samples$h2,xlabel="z[p]",ylabel="density",legend=legend,hist=TRUE)
                  g3<-dataGraph(samples$h3,xlabel="w[p]",ylabel="density",hist=TRUE)
                  g4<-plotZN(samples)
-                 g<-generate_tab("Graphs: ",titleWidth=50,
+                 gTab<<-generate_tab("Graphs: ",titleWidth=50,
                                  tabs=c("Samples","Populations","Power","z-n"),
                                  tabContents=c(g1,g2,g3,g4),
-                                 open=1
+                                 open=1,
+                                 history=gTab
+                                 
                  ) 
-                 output$mainHTML <- renderUI(HTML(g))
+                 output$mainHTML <- renderUI(HTML(gTab))
                })
   observeEvent(input$actionB1,
                {
                  if (input$actionB1==0) return()
                  samples<-makeNetworkSample(network,input$sampleSize,input$sampleSizeRand,nSamples,remove,h,hist=TRUE)
                  
-                 legend<-c(paste0("p(sig | all)=",format(mean(samples$sig),digits=3)),
-                           paste0("p(links | sig)=",format(samples$linkWhenSig,digits=3)),
-                           paste0("p(sig | links)=",format(samples$sigWhenLink,digits=3)),
-                           paste0("p(sig | zero)=",format(samples$sigWhenZero,digits=3)),
-                           paste0("p(zero | sig)=",format(samples$zeroWhenSig,digits=3))
+                 legend<-c(
+                   paste0("p(links)=",format(mean(network$fullLinks!=0),digits=3)),
+                   paste0("p(zero)=",format(mean(network$Stheta==0),digits=3)),
+                   " ",
+                   paste0("p(sig | all)=",format(mean(samples$sig),digits=3)),
+                   " ",
+                   paste0("p(links | sig)=",format(samples$linkWhenSig,digits=3)),
+                   paste0("p(zero | sig)=",format(samples$zeroWhenSig,digits=3)),
+                   " ",
+                   paste0("p(sig | links)=",format(samples$sigWhenLink,digits=3)),
+                   paste0("p(sig | zero)=",format(samples$sigWhenZero,digits=3))
                  )
                  g1<-dataGraph(samples$h1,xlabel="z[s]",ylabel="density",legend=legend,hist=TRUE)
                  g2<-dataGraph(samples$h2,xlabel="z[p]",ylabel="density",legend=legend,hist=TRUE)
                  g3<-dataGraph(samples$h3,xlabel="w[p]",ylabel="density",hist=TRUE)
                  g4<-plotZN(samples)
-                 g<-generate_tab("Graphs: ",titleWidth=50,
+                 gTab<<-generate_tab("Graphs: ",titleWidth=50,
                                  tabs=c("Samples","Populations","Power","z-n"),
                                  tabContents=c(g1,g2,g3,g4),
-                                 open=1
+                                 open=1,
+                                 history=gTab
+                                 
                  ) 
-                 output$mainHTML <- renderUI(HTML(g))
+                 output$mainHTML <- renderUI(HTML(gTab))
                })
   observeEvent(input$actionB2,
                {
                  if (input$actionB2==0) return()
                  
                  h1<-h1a<-h2<-h2a<-h3<-h3a<-0
+                 links<-zeros<-c()
                  sigAll<-linkWhenSigAll<-sigWhenLinkAll<-zeroWhenSigAll<-sigWhenZeroAll<-c()
                  id<-showNotification("Starting Multiple",duration=NULL)
                  for (ni in 1:nCount) {
                    if (newNetwork) {
                      network<<-makeNetwork(networkStructure)
                    }
+                   links<-c(links,mean(network$fullLinks!=0))
+                   zeros<-c(zeros,mean(network$Stheta==0))
+                   
                    samples<-makeNetworkSample(network,input$sampleSize,input$sampleSizeRand,nSamples,remove,h,hist=TRUE)
 
                    sigAll<-c(sigAll,mean(samples$sig))
@@ -250,6 +300,14 @@ server <- function(input, output) {
                  }
                  removeNotification(id)
                  
+                 s7<-paste0("p(links)=",format(mean(links),digits=3),
+                            "  {",format(min(links),digits=3),
+                            ",",format(max(links),digits=3),
+                            "}")
+                 s8<-paste0("p(zeros)=",format(mean(zeros),digits=3),
+                            "  {",format(min(zeros),digits=3),
+                            ",",format(max(zeros),digits=3),
+                            "}")
                  s1<-paste0("p(sig | all)=",format(mean(sigAll),digits=3),
                             "  {",format(min(sigAll),digits=3),
                             ",",format(max(sigAll),digits=3),
@@ -270,7 +328,7 @@ server <- function(input, output) {
                             "  {",format(min(zeroWhenSigAll),digits=3),
                             ",",format(max(zeroWhenSigAll),digits=3),
                             "}")
-                 legend<-c(s1,s2,s3,s4,s5)
+                 legend<-c(s7,s8," ",s1," ",s2,s5," ",s3,s4)
                  g1<-dataGraph(list(density=h1,breaks=h$breaks,density1=h1a),
                                xlabel="z[s]",ylabel="density",legend=legend,
                                hist=TRUE)
@@ -279,12 +337,14 @@ server <- function(input, output) {
                                hist=TRUE)
                  g3<-dataGraph(list(breaks=seq(0,1,length.out=101),density=h3,density1=h3a),
                                xlabel="w[p]",ylabel="density",hist=TRUE)
-                 g<-generate_tab("Graphs: ",titleWidth=50,
+                 gTab<<-generate_tab("Graphs: ",titleWidth=50,
                                  tabs=c("Samples","Populations","Power"),
                                  tabContents=c(g1,g2,g3),
-                                 open=1
+                                 open=1,
+                                 history=gTab
+                                 
                  ) 
-                 output$mainHTML <- renderUI(HTML(g))
+                 output$mainHTML <- renderUI(HTML(gTab))
                })
   
   observeEvent({c(input$nStages,input$nNodesPerStage,
@@ -313,12 +373,13 @@ server <- function(input, output) {
                  gs[1]<<-g1
                  gs[2]<<-g2
                  
-                 g<-generate_tab("Graphs: ",titleWidth=50,
+                 gTab<<-generate_tab("Graphs: ",titleWidth=50,
                                  tabs=c("Network","Effects"),
                                  tabContents=c(gs[1],gs[2]),
-                                 open=1
+                                 open=1,
+                                 history=gTab
                  ) 
-                 output$mainHTML <- renderUI(HTML(g))
+                 output$mainHTML <- renderUI(HTML(gTab))
                })
   
   observeEvent(input$actionA2, 
@@ -348,12 +409,13 @@ server <- function(input, output) {
                  g3<-plotNetworkHist(h1)
                  gs[2]<<-g3
                  
-                 g<-generate_tab("Graphs: ",titleWidth=50,
+                 gTab<<-generate_tab("Graphs: ",titleWidth=50,
                                  tabs=c("Network","Effects"),
                                  tabContents=c(gs[1],gs[2]),
-                                 open=2
+                                 open=2,
+                                 history=gTab
                  ) 
-                 output$mainHTML <- renderUI(HTML(g))
+                 output$mainHTML <- renderUI(HTML(gTab))
                })
   
 }
