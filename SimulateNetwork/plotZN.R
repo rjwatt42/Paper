@@ -27,12 +27,14 @@ plotZN<-function(samples,replication=NULL,field1="zs",field2="n") {
   )
   
   data<-data.frame(x=x[!sig],y=y[!sig])
-  g<-dataGraph(data[1:np,],colour=NA,fill=col1,alpha=alpha,
+  if (length(data$x)>np) data<-data[1:np,]
+  g<-dataGraph(data,colour=NA,fill=col1,alpha=alpha,
                xlim=xlim,xlabel=xlabel,xticks="auto",
                ylim=ylim,ylabel=ylabel,yticks="auto"
   )
   data<-data.frame(x=x[sig],y=y[sig])
-  g<-addG(g,dataPoint(data[1:np,],fill="#4F4",alpha=alpha))
+  if (length(data$x)>np) data<-data[1:np,]
+  g<-addG(g,dataPoint(data,fill="#4F4",alpha=alpha))
   
 
 return(g)

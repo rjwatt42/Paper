@@ -21,7 +21,7 @@ h<-c()
 network<-c()
 
 server <- function(input, output) {
-  initGraph("HTML",gsize=450,autoShow=FALSE,fontScale = 1)
+  initGraph("HTML",gsize=450,autoShow=FALSE,fontScale = 1.1)
   
   newNetwork<-TRUE
   nSamples<-100000
