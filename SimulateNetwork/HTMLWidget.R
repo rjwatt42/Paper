@@ -291,7 +291,7 @@ generate_tab = function(title="Tab",tabs=c("1","2","3"),tabContents=c("a","b","c
   } else link<-''
   
   if (!is.null(history)) {
-    historyButtons<-''
+    historyButtons<-'<div style="float:right;padding-left:4px;padding-right:4px;font-size:12px;">history</div>'
     nextButton<-paste0(
       '<button class="historyButton"',
       buttonFormat,
